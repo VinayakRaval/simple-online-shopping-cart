@@ -1,25 +1,32 @@
-<!-- ===== Header (Navbar) ===== -->
+<!-- ===== Flipkart-Style Header ===== -->
 <header class="navbar">
   <!-- Logo -->
   <div class="logo">
-    <a href="index.html">ShopEase</a>
+    <a href="index.html">ShopEasy</a>
   </div>
 
   <!-- Search Bar -->
   <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search for products, brands and more...">
+    <input type="text" id="search-input" placeholder="Search for products, brands, and more..." />
     <button onclick="searchProducts()">
-      <i class="fa fa-search"></i>
+      🔍
     </button>
   </div>
 
-  <!-- Right Section Icons -->
+  <!-- Right Icons -->
   <div class="nav-icons">
-    <a href="login.html"><i class="fa fa-user"></i> Login</a>
-    <a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a>
-    <a href="orders.html"><i class="fa fa-box"></i> Orders</a>
+    <a href="login.html"><i>👤</i> Login</a>
+    <a href="cart.html"><i>🛒</i> Cart</a>
   </div>
 </header>
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script>
+  // Product search functionality
+  function searchProducts() {
+    const query = document.getElementById("search-input").value.trim();
+    if (query) {
+      localStorage.setItem("searchQuery", query);
+      window.location.href = "products.html";
+    }
+  }
+</script>

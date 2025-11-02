@@ -1,0 +1,154 @@
+/* frontend/css/auth.css */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #141e30, #243b55);
+}
+
+/* Auth Card */
+.auth-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 40px;
+  width: 380px;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.auth-container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+/* Input Styles */
+.input-group {
+  position: relative;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #eee;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+}
+
+input:focus {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 6px rgba(0, 180, 219, 0.6);
+}
+
+/* Eye Icon */
+.eye-icon {
+  position: absolute;
+  right: 12px;
+  top: 38px;
+  cursor: pointer;
+  color: #ccc;
+  transition: 0.3s;
+}
+
+.eye-icon:hover svg {
+  fill: #00b4db;
+}
+
+/* OTP Section */
+.otp-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.otp-container button {
+  flex-shrink: 0;
+  background: #00b4db;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.otp-container button:hover {
+  background: #0083b0;
+}
+
+#otpStatus {
+  color: #00ff88;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  text-align: left;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #00b4db;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background: #0083b0;
+}
+
+/* Switch link */
+.switch {
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+.switch a {
+  color: #00b4db;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.switch a:hover {
+  text-decoration: underline;
+}
+
+/* Password Strength Text */
+.password-strength {
+  font-size: 0.8rem;
+  color: #f3a712;
+  margin-bottom: 5px;
+}

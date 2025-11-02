@@ -1,7 +1,10 @@
+<!-- ===== Flipkart-Style Footer ===== -->
 <footer class="footer">
   <div class="footer-container">
+
+    <!-- About Section -->
     <div class="footer-column">
-      <h4>About</h4>
+      <h3>About</h3>
       <ul>
         <li><a href="#">Contact Us</a></li>
         <li><a href="#">About Us</a></li>
@@ -10,8 +13,9 @@
       </ul>
     </div>
 
+    <!-- Help Section -->
     <div class="footer-column">
-      <h4>Help</h4>
+      <h3>Help</h3>
       <ul>
         <li><a href="#">Payments</a></li>
         <li><a href="#">Shipping</a></li>
@@ -20,8 +24,9 @@
       </ul>
     </div>
 
+    <!-- Policy Section -->
     <div class="footer-column">
-      <h4>Policy</h4>
+      <h3>Policy</h3>
       <ul>
         <li><a href="#">Return Policy</a></li>
         <li><a href="#">Terms of Use</a></li>
@@ -30,18 +35,87 @@
       </ul>
     </div>
 
+    <!-- Social Section -->
     <div class="footer-column">
-      <h4>Follow Us</h4>
-      <div class="social-links">
-        <a href="#"><img src="assets/icons/facebook.svg" alt="Facebook"></a>
-        <a href="#"><img src="assets/icons/twitter.svg" alt="Twitter"></a>
-        <a href="#"><img src="assets/icons/instagram.svg" alt="Instagram"></a>
-        <a href="#"><img src="assets/icons/youtube.svg" alt="YouTube"></a>
-      </div>
+      <h3>Connect</h3>
+      <ul class="social-links">
+        <li><a href="#">Facebook</a></li>
+        <li><a href="#">Twitter</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">YouTube</a></li>
+      </ul>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="footer-column contact">
+      <h3>Mail Us</h3>
+      <p>
+        ShopEasy Pvt Ltd,<br>
+        4th Floor, Tech Park,<br>
+        Bengaluru, Karnataka - 560001<br>
+        support@shopeasy.in
+      </p>
     </div>
   </div>
 
   <div class="footer-bottom">
-    <p>&copy; 2025 Simple Online Shopping Cart. All rights reserved.</p>
+    <p>© 2025 ShopEasy — Built with ❤️ using Python + XAMPP Secure Backend</p>
   </div>
 </footer>
+
+<style>
+.footer {
+  background: #172337;
+  color: #fff;
+  padding: 40px 60px;
+  margin-top: 50px;
+  font-family: "Poppins", sans-serif;
+}
+
+.footer-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 30px;
+}
+
+.footer-column h3 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #ffe11b;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-column ul li {
+  margin: 6px 0;
+}
+
+.footer-column ul li a {
+  color: #ddd;
+  text-decoration: none;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.footer-column ul li a:hover {
+  color: #fff;
+}
+
+.footer-column.contact p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #ccc;
+}
+
+.footer-bottom {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 13px;
+  color: #aaa;
+  border-top: 1px solid #444;
+  padding-top: 10px;
+}
+</style>

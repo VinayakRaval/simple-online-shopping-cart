@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
-from backend.models import get_all_products, get_product_by_id, add_product
-from backend.database import get_connection
+from models import get_all_products, get_product_by_id, add_product
+from database import get_connection
+
 
 products_bp = Blueprint("products", __name__)
 
@@ -29,11 +30,11 @@ def get_product(product_id):
 @products_bp.route("/category/<string:category>", methods=["GET"])
 def get_products_by_category(category):
     conn = get_connection()
-    result = conn.execute(
-        "SELECT * FROM products WHERE LOWER(category)=LOWER(?)", (category,)
-    ).fetchall()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE LOWER(category)=LOWER(%s)", (category,))
+    result = cursor.fetchall()
     conn.close()
-    return jsonify([dict(r) for r in result]), 200
+    return jsonify(result), 200
 
 # ------------------------------
 # POST new product (Admin only)

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Orders | Simple Online Shopping Cart</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/navbar.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <main class="orders-page">
+    <div class="orders-container">
+      <h2>Your Orders</h2>
+      <div id="orders-list"></div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <script>
+    // ✅ Load header & footer
+    fetch("components/header.html").then(r => r.text()).then(html => document.getElementById("header").innerHTML = html);
+    fetch("components/footer.html").then(r => r.text()).then(html => document.getElementById("footer").innerHTML = html);
+
+    // ✅ Secure fetch wrapper
+    function secureFetch(url, options = {}) {
+      const safeUrl = url.startsWith("http") ? url : `http://localhost/simple-online-shopping-cart/backend${url}`;
+      return fetch(safeUrl, {
+        ...options,
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        credentials: "include"
+      });
+    }
+
+    const userId = localStorage.getItem("user_id") || 1;
+    const ordersList = document.getElementById("orders-list");
+
+    // ✅ Load all user orders
+    function loadOrders() {
+      secureFetch(`/api/orders/user/${userId}`)
+        .then(res => res.json())
+        .then(orders => {
+          ordersList.innerHTML = "";
+          if (!orders.length) {
+            ordersList.innerHTML = "<p>You have no orders yet.</p>";
+            return;
+          }
+
+          orders.forEach(order => {
+            const div = document.createElement("div");
+            div.className = "order-card";
+            div.innerHTML = `
+              <div class="order-header">
+                <h3>Order #${order.id}</h3>
+                <p><strong>Status:</strong> ${order.status || "Pending"}</p>
+              </div>
+              <p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+              <p><strong>Address:</strong> ${order.address}</p>
+              <p><strong>Total:</strong> ₹${order.total}</p>
+              <div class="order-items">
+                <h4>Items:</h4>
+                <ul>
+                  ${order.items.map(item => `<li>${item.name} × ${item.quantity} — ₹${item.price * item.quantity}</li>`).join("")}
+                </ul>
+              </div>
+            `;
+            ordersList.appendChild(div);
+          });
+        })
+        .catch(err => {
+          console.error("Error loading orders:", err);
+          ordersList.innerHTML = "<p>Failed to load orders.</p>";
+        });
+    }
+
+    loadOrders();
+  </script>
+
+  <style>
+    .orders-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .order-card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      background: #fafafa;
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .order-items ul {
+      margin-top: 5px;
+      padding-left: 20px;
+    }
+  </style>
+</body>
+</html>

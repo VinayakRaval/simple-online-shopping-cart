@@ -2,93 +2,93 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Product Details | Simple Online Shopping Cart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Details — Simple Online Shopping Cart</title>
+  <link rel="stylesheet" href="css/navbar.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-
   <!-- Header -->
   <div id="header"></div>
+  <script>
+    fetch("components/header.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("header").innerHTML = html);
+  </script>
 
-  <main class="product-page">
-    <div class="product-details-container" style="display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:40px; padding:30px;">
-
-      <!-- Product Image -->
-      <div class="product-image" style="flex:1; min-width:280px; text-align:center;">
-        <img id="product-img" src="assets/images/default.jpg" alt="Product Image" style="width:300px; height:300px; object-fit:contain; border-radius:10px;">
-      </div>
-
-      <!-- Product Info -->
-      <div class="product-info" style="flex:1; min-width:280px;">
-        <h2 id="product-name">Product Name</h2>
-        <p id="product-category" style="color:#555;">Category: Electronics</p>
-        <p id="product-description" style="margin:15px 0;">A detailed description of the product will appear here. This includes product highlights, specifications, and details.</p>
-        <h3 id="product-price" style="color:#0072ff;">₹0.00</h3>
-
-        <button id="add-to-cart" class="add-cart" style="margin-top:15px;">Add to Cart</button>
-      </div>
+  <main class="product-details-page">
+    <div id="product-details" class="product-details-container">
+      <p>Loading product details...</p>
     </div>
-
-    <section class="related-products" style="padding:30px;">
-      <h3>Related Products</h3>
-      <div class="product-grid" id="related-products"></div>
-    </section>
   </main>
 
   <!-- Footer -->
   <div id="footer"></div>
-
-  <script src="js/main.js"></script>
-  <script src="js/products.js"></script>
   <script>
-    // Load header and footer
-    fetch("components/header.html").then(res => res.text()).then(data => document.getElementById("header").innerHTML = data);
-    fetch("components/footer.html").then(res => res.text()).then(data => document.getElementById("footer").innerHTML = data);
+    fetch("components/footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+  </script>
 
-    // Product details logic
+  <script>
+    // ✅ Base API URL for XAMPP
+    const BASE_URL = "http://localhost/simple-online-shopping-cart/backend/api";
+
+    // ✅ Extract Product ID from query string
     const params = new URLSearchParams(window.location.search);
     const productId = params.get("id");
 
-    if (productId) {
-      fetch(`/api/products/${productId}`)
+    // ✅ Elements
+    const productContainer = document.getElementById("product-details");
+    const userId = localStorage.getItem("user_id") || 1; // Demo user for now
+
+    // ✅ Load product details securely
+    function loadProduct() {
+      fetch(`${BASE_URL}/products.php?id=${productId}`)
         .then(res => res.json())
         .then(product => {
-          document.getElementById("product-name").textContent = product.name;
-          document.getElementById("product-category").textContent = "Category: " + product.category;
-          document.getElementById("product-description").textContent = product.description;
-          document.getElementById("product-price").textContent = "₹" + product.price;
-          document.getElementById("product-img").src = "assets/images/" + (product.image || "default.jpg");
+          if (!product || !product.id) {
+            productContainer.innerHTML = "<p>Product not found.</p>";
+            return;
+          }
 
+          productContainer.innerHTML = `
+            <div class="product-view">
+              <img src="../backend/static/uploads/${product.image || 'default.jpg'}" alt="${product.name}">
+              <div class="product-info">
+                <h2>${product.name}</h2>
+                <p class="price">₹${product.price}</p>
+                <p class="desc">${product.description}</p>
+                <p><strong>Category:</strong> ${product.category}</p>
+                <button id="add-to-cart" class="btn-primary">Add to Cart</button>
+              </div>
+            </div>
+          `;
+
+          // ✅ Add to Cart
           document.getElementById("add-to-cart").addEventListener("click", () => {
-            const userId = localStorage.getItem("user_id") || 1;
-            fetch("/api/cart/add", {
+            fetch(`${BASE_URL}/cart.php?action=add`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ user_id: userId, product_id: product.id, quantity: 1 })
-            }).then(res => res.json()).then(data => alert(data.message || "Added to cart"));
+              body: JSON.stringify({
+                user_id: userId,
+                product_id: product.id,
+                quantity: 1
+              })
+            })
+              .then(res => res.json())
+              .then(data => alert(data.message || "Added to cart successfully!"))
+              .catch(() => alert("Failed to add to cart."));
           });
+        })
+        .catch(err => {
+          console.error("Error loading product:", err);
+          productContainer.innerHTML = "<p>Failed to load product details.</p>";
         });
     }
 
-    // Related products section
-    fetch("/api/products")
-      .then(res => res.json())
-      .then(products => {
-        const relatedDiv = document.getElementById("related-products");
-        products.slice(0, 4).forEach(p => {
-          const div = document.createElement("div");
-          div.classList.add("product-card");
-          div.innerHTML = `
-            <img src="assets/images/${p.image || 'default.jpg'}" alt="${p.name}">
-            <h3>${p.name}</h3>
-            <p>₹${p.price}</p>
-            <button onclick="window.location.href='product-details.html?id=${p.id}'">View</button>
-          `;
-          relatedDiv.appendChild(div);
-        });
-      });
+    // ✅ Load when page opens
+    loadProduct();
   </script>
-
 </body>
 </html>

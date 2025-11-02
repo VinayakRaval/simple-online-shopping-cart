@@ -1,41 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Products | Simple Online Shopping Cart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Products — Simple Online Shopping Cart</title>
+   <script src="js/auth.js"></script>
+  <script>checkLogin();</script>
   <link rel="stylesheet" href="css/navbar.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- ✅ Header -->
   <div id="header"></div>
+  <script>
+    fetch('components/header.html')
+      .then(res => res.text())
+      .then(html => document.getElementById('header').innerHTML = html);
+  </script>
 
+  <!-- ✅ Product Section -->
   <section class="product-page">
     <h2>All Products</h2>
 
-    <!-- Category Filter -->
     <div class="filter-bar">
       <select id="categoryFilter">
-        <option value="all">All Categories</option>
+        <option value="all">All</option>
         <option value="mobiles">Mobiles</option>
         <option value="laptops">Laptops</option>
         <option value="fashion">Fashion</option>
+        <option value="electronics">Electronics</option>
       </select>
-      <input type="text" id="searchProducts" placeholder="Search products...">
+      <input id="searchProducts" placeholder="Search products...">
+      <button id="searchBtn" class="btn">Search</button>
     </div>
 
-    <!-- Product Grid -->
-    <div class="product-grid" id="productList">
-      <!-- Products will be injected here by JS -->
-    </div>
+    <div id="productList" class="product-grid"></div>
   </section>
 
-  <!-- Footer -->
+  <!-- ✅ Footer -->
   <div id="footer"></div>
+  <script>
+    fetch('components/footer.html')
+      .then(res => res.text())
+      .then(html => document.getElementById('footer').innerHTML = html);
+  </script>
 
-  <script src="js/main.js"></script>
-  <script src="js/products.js"></script>
+  <!-- ✅ JS Logic -->
+  <script>
+    // Load filters from query string
+    const qs = new URLSearchParams(location.search);
+    const initialCategory = qs.get('category') || 'all';
+    document.getElementById('categoryFilter').value = initialCategory;
+
+    // ✅ Load products
+    function loadProducts() {
+      fetch('../backend/api/products.php')
+        .then(res => res.json())
+        .then(products => {
+          const cat = document.getElementById('categoryFilter').value;
+          const search = document.getElementById('searchProducts').value.trim().toLowerCase();
+
+          let filtered = products;
+          if (cat !== 'all') filtered = filtered.filter(p => (p.category || '').toLowerCase() === cat.toLowerCase());
+          if (search) filtered = filtered.filter(p => (p.name || '').toLowerCase().includes(search));
+
+          renderProducts(filtered);
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('productList').innerHTML = '<p>Unable to load products.</p>';
+        });
+    }
+
+    // ✅ Render product cards
+    function renderProducts(products) {
+      const container = document.getElementById('productList');
+      container.innerHTML = '';
+
+      if (!products.length) {
+        container.innerHTML = '<p>No products found.</p>';
+        return;
+      }
+
+      products.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'product-card';
+        div.innerHTML = `
+          <img src="../backend/static/uploads/${p.image || 'default.jpg'}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>₹${p.price}</p>
+          <button onclick="addToCart(${p.id}, 1)">Add to Cart</button>
+          <button onclick="viewProduct(${p.id})" class="btn-secondary">View</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // ✅ Navigation to product details
+    function viewProduct(id) {
+      window.location.href = `product-details.html?id=${id}`;
+    }
+
+    // ✅ Add product to cart
+    function addToCart(productId, qty) {
+      fetch('../backend/api/cart.php?action=add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: 1, product_id: productId, quantity: qty })
+      })
+        .then(res => res.json())
+        .then(j => alert(j.message || 'Added to cart'))
+        .catch(() => alert('Error adding product'));
+    }
+
+    // Event listeners
+    document.getElementById('categoryFilter').addEventListener('change', loadProducts);
+    document.getElementById('searchBtn').addEventListener('click', loadProducts);
+
+    // Initial load
+    loadProducts();
+  </script>
 </body>
 </html>

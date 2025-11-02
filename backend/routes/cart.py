@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from backend.database import get_connection
+from database import get_connection
 
 cart_bp = Blueprint("cart", __name__)
 
@@ -9,14 +9,16 @@ cart_bp = Blueprint("cart", __name__)
 @cart_bp.route("/<int:user_id>", methods=["GET"])
 def get_cart(user_id):
     conn = get_connection()
-    items = conn.execute("""
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
         SELECT c.id, c.product_id, p.name, p.price, c.quantity, p.image
         FROM cart c
         JOIN products p ON c.product_id = p.id
-        WHERE c.user_id = ?
-    """, (user_id,)).fetchall()
+        WHERE c.user_id = %s
+    """, (user_id,))
+    items = cursor.fetchall()
     conn.close()
-    return jsonify([dict(item) for item in items]), 200
+    return jsonify(items), 200
 
 
 # ------------------------------
@@ -33,19 +35,18 @@ def add_to_cart():
         return jsonify({"error": "Missing user_id or product_id"}), 400
 
     conn = get_connection()
-    existing = conn.execute(
-        "SELECT * FROM cart WHERE user_id=? AND product_id=?",
-        (user_id, product_id)
-    ).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM cart WHERE user_id=%s AND product_id=%s", (user_id, product_id))
+    existing = cursor.fetchone()
 
     if existing:
-        conn.execute(
-            "UPDATE cart SET quantity = quantity + ? WHERE user_id=? AND product_id=?",
+        cursor.execute(
+            "UPDATE cart SET quantity = quantity + %s WHERE user_id=%s AND product_id=%s",
             (quantity, user_id, product_id)
         )
     else:
-        conn.execute(
-            "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)",
+        cursor.execute(
+            "INSERT INTO cart (user_id, product_id, quantity) VALUES (%s, %s, %s)",
             (user_id, product_id, quantity)
         )
 
@@ -68,8 +69,9 @@ def update_cart_item():
         return jsonify({"error": "Missing fields"}), 400
 
     conn = get_connection()
-    conn.execute(
-        "UPDATE cart SET quantity=? WHERE user_id=? AND product_id=?",
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE cart SET quantity=%s WHERE user_id=%s AND product_id=%s",
         (quantity, user_id, product_id)
     )
     conn.commit()
@@ -87,10 +89,8 @@ def remove_cart_item():
     product_id = data.get("product_id")
 
     conn = get_connection()
-    conn.execute(
-        "DELETE FROM cart WHERE user_id=? AND product_id=?",
-        (user_id, product_id)
-    )
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM cart WHERE user_id=%s AND product_id=%s", (user_id, product_id))
     conn.commit()
     conn.close()
     return jsonify({"message": "Item removed"}), 200

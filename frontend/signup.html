@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signup - Simple Cart</title>
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <h2>Create Account</h2>
+    <form id="signupForm">
+      <div class="input-group">
+        <label>Username</label>
+        <input type="text" id="username" required placeholder="Enter username" />
+      </div>
+
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="email" required placeholder="Enter email" />
+      </div>
+
+      <div class="input-group">
+        <label>Phone Number</label>
+        <div class="otp-container">
+          <input type="text" id="phone" required placeholder="Enter phone number" />
+          <button type="button" id="sendOtp">Send OTP</button>
+        </div>
+        <p id="otpStatus"></p>
+      </div>
+
+      <div class="input-group">
+        <label>OTP</label>
+        <input type="text" id="otp" placeholder="Enter OTP" />
+      </div>
+
+      <div class="input-group password-field">
+        <label>Password</label>
+        <input type="password" id="password" required placeholder="Enter password" />
+        <span class="eye-icon" id="togglePassword">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#ccc" viewBox="0 0 24 24">
+            <path d="M12 5c-7.633 0-12 7-12 7s4.367 7 12 7 12-7 12-7-4.367-7-12-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/>
+          </svg>
+        </span>
+      </div>
+
+      <div class="password-strength" id="passwordStrength"></div>
+
+      <button type="submit" class="btn">Sign Up</button>
+      <p class="switch">Already have an account? <a href="login.html">Login</a></p>
+    </form>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

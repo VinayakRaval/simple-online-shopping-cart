@@ -1,118 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Cart | Simple Online Shopping Cart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Your Cart — Simple Online Shopping Cart</title>
+  <script src="js/auth.js"></script>
+  <script>checkLogin();</script>
   <link rel="stylesheet" href="css/navbar.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <!-- Include Header -->
+  <!-- Header -->
   <div id="header"></div>
-  <script>
-    fetch("components/header.html")
-      .then(res => res.text())
-      .then(data => document.getElementById("header").innerHTML = data)
-      .catch(err => console.error("Header load failed:", err));
-  </script>
 
-  <!-- Cart Page -->
   <main class="cart-page">
     <h2>Your Shopping Cart</h2>
     <div id="cart-items" class="cart-items"></div>
-
-    <div id="cart-summary" class="cart-summary">
-      <p>Total: <strong id="cart-total">₹0</strong></p>
+    <div class="cart-summary">
+      <h3>Total: ₹<span id="cart-total">0</span></h3>
       <button id="checkout-btn" class="btn-primary">Proceed to Checkout</button>
     </div>
   </main>
 
-  <!-- Include Footer -->
+  <!-- Footer -->
   <div id="footer"></div>
+
   <script>
+    // ✅ Load Header & Footer (XAMPP safe)
+    fetch("components/header.html")
+      .then(r => r.text())
+      .then(h => document.getElementById("header").innerHTML = h)
+      .catch(err => console.error("Header load failed:", err));
+
     fetch("components/footer.html")
-      .then(res => res.text())
-      .then(data => document.getElementById("footer").innerHTML = data)
+      .then(r => r.text())
+      .then(h => document.getElementById("footer").innerHTML = h)
       .catch(err => console.error("Footer load failed:", err));
-  </script>
 
-  <script src="js/main.js"></script>
+    // ✅ Secure fetch wrapper for XAMPP
+    function secureFetch(url, options = {}) {
+      const base = "http://localhost/simple-online-shopping-cart/backend";
+      const fullUrl = url.startsWith("http") ? url : `${base}${url}`;
+      return fetch(fullUrl, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        },
+        credentials: "include"
+      });
+    }
 
-  <script>
-    // Simulated user (can be replaced with real login system)
     const userId = localStorage.getItem("user_id") || 1;
-    const cartContainer = document.getElementById("cart-items");
-    const totalAmount = document.getElementById("cart-total");
+    const itemsEl = document.getElementById("cart-items");
+    const totalEl = document.getElementById("cart-total");
 
-    // Load cart items from backend (Python Flask API)
+    // ✅ Load Cart Items
     function loadCart() {
-      fetch(`/api/cart/${userId}`)
-        .then(res => res.json())
+      secureFetch(`/api/cart.php?user_id=${userId}`)
+        .then(r => r.json())
         .then(items => {
-          cartContainer.innerHTML = "";
+          itemsEl.innerHTML = "";
           let total = 0;
 
-          if (!items.length) {
-            cartContainer.innerHTML = "<p>Your cart is empty.</p>";
-            totalAmount.textContent = "₹0";
+          if (!Array.isArray(items) || items.length === 0) {
+            itemsEl.innerHTML = "<p>Your cart is empty.</p>";
+            totalEl.textContent = "0";
             return;
           }
 
-          items.forEach(item => {
+          items.forEach(it => {
+            total += it.price * it.quantity;
             const div = document.createElement("div");
-            div.classList.add("cart-item");
+            div.className = "cart-item";
             div.innerHTML = `
-              <img src="assets/images/${item.image || 'default.jpg'}" alt="${item.name}">
+              <img src="../backend/static/uploads/${it.image || 'default.jpg'}" alt="${it.name}">
               <div class="cart-details">
-                <h3>${item.name}</h3>
-                <p>₹${item.price} × ${item.quantity}</p>
+                <h3>${it.name}</h3>
+                <p>₹${it.price} × 
+                  <input type="number" value="${it.quantity}" min="1" 
+                         data-id="${it.product_id}" class="qty-input" style="width:60px">
+                </p>
               </div>
-              <button class="remove-btn" data-id="${item.product_id}">Remove</button>
+              <div>
+                <button class="remove-btn" data-id="${it.product_id}">Remove</button>
+              </div>
             `;
-            cartContainer.appendChild(div);
-            total += item.price * item.quantity;
+            itemsEl.appendChild(div);
           });
 
-          totalAmount.textContent = "₹" + total.toFixed(2);
+          totalEl.textContent = total.toFixed(2);
 
-          // Remove item from cart
+          // Remove item
           document.querySelectorAll(".remove-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-              const productId = btn.getAttribute("data-id");
-              fetch("/api/cart/remove", {
+            btn.addEventListener("click", e => {
+              const pid = e.target.dataset.id;
+              secureFetch("/api/cart.php?action=remove", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: userId, product_id: productId })
+                body: JSON.stringify({ user_id: userId, product_id: pid })
+              }).then(() => loadCart());
+            });
+          });
+
+          // Update quantity
+          document.querySelectorAll(".qty-input").forEach(inp => {
+            inp.addEventListener("change", e => {
+              const pid = e.target.dataset.id;
+              const newQty = parseInt(e.target.value) || 1;
+              secureFetch("/api/cart.php?action=update", {
+                method: "POST",
+                body: JSON.stringify({ user_id: userId, product_id: pid, quantity: newQty })
               }).then(() => loadCart());
             });
           });
         })
         .catch(err => {
-          console.error("Error loading cart:", err);
-          cartContainer.innerHTML = "<p>Failed to load cart. Please try again.</p>";
+          console.error("Cart load failed:", err);
+          itemsEl.innerHTML = "<p>Unable to load cart.</p>";
         });
     }
 
-    // Load cart on page start
-    loadCart();
-
-    // Checkout button handler
+    // ✅ Checkout Redirect
     document.getElementById("checkout-btn").addEventListener("click", () => {
-      fetch("/api/orders/place", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId })
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message || "Order placed successfully!");
-        window.location.href = "checkout.html";
-      })
-      .catch(() => alert("Error while placing order!"));
+      window.location.href = "checkout.html";
     });
-  </script>
 
+    // ✅ Initial Load
+    loadCart();
+  </script>
 </body>
 </html>
