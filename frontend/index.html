@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Online Shopping Cart</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/navbar.css">
+</head>
+<body>
+
+  <!-- Include Header -->
+  <div id="header"></div>
+  <script>
+    fetch('components/header.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('header').innerHTML = data;
+      })
+      .catch(err => console.error("Header load failed:", err));
+  </script>
+
+  <!-- Banner Section -->
+  <section class="banner">
+    <img src="assets/images/banner1.jpg" alt="Shop Banner" class="banner-img">
+  </section>
+
+  <!-- Categories -->
+  <section class="categories">
+    <h2>Top Categories</h2>
+    <div class="category-container">
+      <div class="category-card" onclick="filterProducts('Phones')">
+        <img src="assets/images/phones.jpg" alt="Phones">
+        <p>Phones</p>
+      </div>
+      <div class="category-card" onclick="filterProducts('Laptops')">
+        <img src="assets/images/laptops.jpg" alt="Laptops">
+        <p>Laptops</p>
+      </div>
+      <div class="category-card" onclick="filterProducts('Fashion')">
+        <img src="assets/images/fashion.jpg" alt="Fashion">
+        <p>Fashion</p>
+      </div>
+      <div class="category-card" onclick="filterProducts('Electronics')">
+        <img src="assets/images/electronics.jpg" alt="Electronics">
+        <p>Electronics</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="featured">
+    <h2>Featured Products</h2>
+    <div id="product-list" class="product-container">
+      <!-- Products will load here dynamically from JS -->
+    </div>
+  </section>
+
+  <!-- Include Footer -->
+  <div id="footer"></div>
+  <script>
+    fetch('components/footer.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('footer').innerHTML = data;
+      })
+      .catch(err => console.error("Footer load failed:", err));
+  </script>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

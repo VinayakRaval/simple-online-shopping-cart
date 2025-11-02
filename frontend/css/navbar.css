@@ -1,0 +1,92 @@
+/* ===== Flipkart-Style Navbar ===== */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2874f0;
+  color: white;
+  padding: 10px 40px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Logo */
+.navbar .logo a {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Search Bar */
+.navbar .search-bar {
+  display: flex;
+  align-items: center;
+  width: 40%;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-bar button {
+  background: #ffe11b;
+  border: none;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Right Section (icons/links) */
+.navbar .nav-icons {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.navbar .nav-icons a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.navbar .nav-icons a:hover {
+  color: #ffe11b;
+}
+
+/* Icon styling */
+.navbar .nav-icons i {
+  font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .search-bar {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-icons {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: space-around;
+  }
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products | Simple Online Shopping Cart</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/navbar.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div id="header"></div>
+
+  <section class="product-page">
+    <h2>All Products</h2>
+
+    <!-- Category Filter -->
+    <div class="filter-bar">
+      <select id="categoryFilter">
+        <option value="all">All Categories</option>
+        <option value="mobiles">Mobiles</option>
+        <option value="laptops">Laptops</option>
+        <option value="fashion">Fashion</option>
+      </select>
+      <input type="text" id="searchProducts" placeholder="Search products...">
+    </div>
+
+    <!-- Product Grid -->
+    <div class="product-grid" id="productList">
+      <!-- Products will be injected here by JS -->
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <div id="footer"></div>
+
+  <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
+</body>
+</html>
