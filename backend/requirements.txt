@@ -1,0 +1,29 @@
+flask==3.0.3
+flask-cors==4.0.1
+mysql-connector-python==9.0.0
+itsdangerous==2.2.0
+bcrypt==4.2.0
+python-dotenv==1.0.1
+reportlab==4.2.2
+autopep8 black
+flask
+flask-cors
+mysql-connector-python
+itsdangerous
+bcrypt
+python-dotenv
+reportlab
+
+pip install -r requirements.txt
+
+
+Step 4: Initialize Database Tables
+
+Run this once to create all tables:
+
+python -c "from database import init_db; init_db()"
+
+
+✅ You should see:
+
+✅ Database initialized successfully!

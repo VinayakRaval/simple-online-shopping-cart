@@ -1,35 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Simple Cart</title>
-  <link rel="stylesheet" href="css/auth.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Shopping Cart</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .auth-container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+      width: 380px;
+      text-align: center;
+    }
+    .auth-container h2 {
+      margin-bottom: 25px;
+      color: #203a43;
+    }
+    .auth-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    .auth-container button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #203a43;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .auth-container button:hover {
+      background: #2c5364;
+    }
+    .auth-container a {
+      display: block;
+      margin-top: 15px;
+      color: #203a43;
+      text-decoration: none;
+    }
+    .password-wrapper {
+      position: relative;
+    }
+    .eye-icon {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+    }
+    svg {
+      width: 22px;
+      height: 22px;
+      fill: #000;
+    }
+  </style>
 </head>
 <body>
   <div class="auth-container">
-    <h2>Welcome Back</h2>
-    <form id="loginForm">
-      <div class="input-group">
-        <label>Email</label>
-        <input type="email" id="email" required placeholder="Enter email" />
-      </div>
-
-      <div class="input-group password-field">
-        <label>Password</label>
-        <input type="password" id="password" required placeholder="Enter password" />
-        <span class="eye-icon" id="togglePassword">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#ccc" viewBox="0 0 24 24">
-            <path d="M12 5c-7.633 0-12 7-12 7s4.367 7 12 7 12-7 12-7-4.367-7-12-7zm0 12a5 5 0 110-10 5 5 0 010 10z"/>
-          </svg>
-        </span>
-      </div>
-
-      <button type="submit" class="btn">Login</button>
-      <p class="switch">Don't have an account? <a href="signup.html">Sign Up</a></p>
-    </form>
+    <h2>Login</h2>
+    <input type="text" id="loginInput" placeholder="Email or Phone" required>
+    <div class="password-wrapper">
+      <input type="password" id="loginPassword" placeholder="Password" required>
+      <span class="eye-icon" id="toggleLoginPassword">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/>
+        </svg>
+      </span>
+    </div>
+    <button id="loginBtn" type="button">Login</button>
+    <a href="signup.html">Don't have an account? Sign Up</a>
+    <a href="forgot_password.html">Forgot Password?</a>
   </div>
-
   <script src="js/auth.js"></script>
 </body>
 </html>

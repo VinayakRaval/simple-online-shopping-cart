@@ -1,125 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Products — Simple Online Shopping Cart</title>
-   <script src="js/auth.js"></script>
-  <script>checkLogin();</script>
-  <link rel="stylesheet" href="css/navbar.css">
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products | Simple Online Shopping Cart</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f6f7fb;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #2874f0;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 6px;
+      padding: 5px 10px;
+      width: 50%;
+    }
+
+    .search-bar input {
+      border: none;
+      outline: none;
+      padding: 8px;
+      flex: 1;
+      font-size: 15px;
+    }
+
+    .search-bar button {
+      border: none;
+      background: #2874f0;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .category-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: white;
+      padding: 10px 0;
+      margin-top: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .category-btn {
+      background: #fff;
+      border: 1px solid #2874f0;
+      color: #2874f0;
+      border-radius: 5px;
+      padding: 6px 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .category-btn:hover {
+      background: #2874f0;
+      color: white;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .product-card {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+      transition: 0.3s ease;
+      text-align: center;
+    }
+
+    .product-card:hover {
+      transform: scale(1.03);
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .product-details {
+      padding: 12px;
+    }
+
+    .product-details h3 {
+      font-size: 17px;
+      margin: 8px 0;
+    }
+
+    .product-details .price {
+      color: #2874f0;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .add-to-cart-btn {
+      margin-top: 10px;
+      background: #2874f0;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 15px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .add-to-cart-btn:hover {
+      background: #0f5cd6;
+    }
+
+    footer {
+      background: #fff;
+      text-align: center;
+      padding: 15px;
+      border-top: 1px solid #eee;
+      color: #555;
+    }
+
+    @media (max-width: 768px) {
+      .search-bar {
+        width: 90%;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- ✅ Header -->
-  <div id="header"></div>
-  <script>
-    fetch('components/header.html')
-      .then(res => res.text())
-      .then(html => document.getElementById('header').innerHTML = html);
-  </script>
-
-  <!-- ✅ Product Section -->
-  <section class="product-page">
-    <h2>All Products</h2>
-
-    <div class="filter-bar">
-      <select id="categoryFilter">
-        <option value="all">All</option>
-        <option value="mobiles">Mobiles</option>
-        <option value="laptops">Laptops</option>
-        <option value="fashion">Fashion</option>
-        <option value="electronics">Electronics</option>
-      </select>
-      <input id="searchProducts" placeholder="Search products...">
-      <button id="searchBtn" class="btn">Search</button>
+  <header>
+    <h1>🛒 Simple Cart</h1>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search for products..." />
+      <button id="searchBtn">Search</button>
     </div>
+  </header>
 
-    <div id="productList" class="product-grid"></div>
+  <section class="category-buttons">
+    <button class="category-btn" data-category="">All</button>
+    <button class="category-btn" data-category="Phones">Phones</button>
+    <button class="category-btn" data-category="Laptops">Laptops</button>
+    <button class="category-btn" data-category="Accessories">Accessories</button>
   </section>
 
-  <!-- ✅ Footer -->
-  <div id="footer"></div>
-  <script>
-    fetch('components/footer.html')
-      .then(res => res.text())
-      .then(html => document.getElementById('footer').innerHTML = html);
-  </script>
+  <div id="products-container" class="products-grid"></div>
 
-  <!-- ✅ JS Logic -->
-  <script>
-    // Load filters from query string
-    const qs = new URLSearchParams(location.search);
-    const initialCategory = qs.get('category') || 'all';
-    document.getElementById('categoryFilter').value = initialCategory;
+  <footer>© 2025 Simple Online Shopping Cart | All Rights Reserved</footer>
 
-    // ✅ Load products
-    function loadProducts() {
-      fetch('../backend/api/products.php')
-        .then(res => res.json())
-        .then(products => {
-          const cat = document.getElementById('categoryFilter').value;
-          const search = document.getElementById('searchProducts').value.trim().toLowerCase();
-
-          let filtered = products;
-          if (cat !== 'all') filtered = filtered.filter(p => (p.category || '').toLowerCase() === cat.toLowerCase());
-          if (search) filtered = filtered.filter(p => (p.name || '').toLowerCase().includes(search));
-
-          renderProducts(filtered);
-        })
-        .catch(err => {
-          console.error(err);
-          document.getElementById('productList').innerHTML = '<p>Unable to load products.</p>';
-        });
-    }
-
-    // ✅ Render product cards
-    function renderProducts(products) {
-      const container = document.getElementById('productList');
-      container.innerHTML = '';
-
-      if (!products.length) {
-        container.innerHTML = '<p>No products found.</p>';
-        return;
-      }
-
-      products.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'product-card';
-        div.innerHTML = `
-          <img src="../backend/static/uploads/${p.image || 'default.jpg'}" alt="${p.name}">
-          <h3>${p.name}</h3>
-          <p>₹${p.price}</p>
-          <button onclick="addToCart(${p.id}, 1)">Add to Cart</button>
-          <button onclick="viewProduct(${p.id})" class="btn-secondary">View</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    // ✅ Navigation to product details
-    function viewProduct(id) {
-      window.location.href = `product-details.html?id=${id}`;
-    }
-
-    // ✅ Add product to cart
-    function addToCart(productId, qty) {
-      fetch('../backend/api/cart.php?action=add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: 1, product_id: productId, quantity: qty })
-      })
-        .then(res => res.json())
-        .then(j => alert(j.message || 'Added to cart'))
-        .catch(() => alert('Error adding product'));
-    }
-
-    // Event listeners
-    document.getElementById('categoryFilter').addEventListener('change', loadProducts);
-    document.getElementById('searchBtn').addEventListener('click', loadProducts);
-
-    // Initial load
-    loadProducts();
-  </script>
+  <script src="js/products.js"></script>
 </body>
 </html>

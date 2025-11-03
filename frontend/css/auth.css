@@ -152,3 +152,140 @@ input:focus {
   color: #f3a712;
   margin-bottom: 5px;
 }
+body {
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(135deg, #141e30, #243b55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-box {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  padding: 40px;
+  border-radius: 20px;
+  width: 350px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+  color: white;
+  text-align: center;
+}
+
+.auth-box h2 {
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 15px;
+}
+
+.otp-btn {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  padding: 6px 10px;
+  border: none;
+  background: #00b4d8;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.password-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  fill: white;
+}
+
+.btn {
+  width: 100%;
+  padding: 12px;
+  background: #00b4d8;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #0077b6;
+}
+
+a {
+  color: #00b4d8;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Popup */
+.popup {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #222;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: 0.4s ease;
+}
+
+.popup.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* OTP Popup */
+.otp-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.otp-popup {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+}
+
+.otp-popup h3 { color: #333; }

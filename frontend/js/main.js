@@ -1,51 +1,32 @@
-// Load header and footer
-document.addEventListener('DOMContentLoaded', () => {
-  fetch('components/header.html')
-    .then(res => res.text())
-    .then(data => document.getElementById('header').innerHTML = data);
+// small shared helpers
+const API = "http://127.0.0.1:5000/api";
+const userId = localStorage.getItem('user_id') || 1;
 
-  fetch('components/footer.html')
-    .then(res => res.text())
-    .then(data => document.getElementById('footer').innerHTML = data);
+function showToast(msg){ alert(msg); }
 
-  loadProducts();
-});
-
-// Dummy products for demo
-const products = [
-  { id: 1, name: "OnePlus Nord 3", price: 29999, category: "Phones", image: "assets/images/oneplus.jpg" },
-  { id: 2, name: "HP Laptop", price: 49999, category: "Laptops", image: "assets/images/hp.jpg" },
-  { id: 3, name: "Men’s Jacket", price: 1999, category: "Fashion", image: "assets/images/jacket.jpg" },
-  { id: 4, name: "Bluetooth Speaker", price: 1499, category: "Electronics", image: "assets/images/speaker.jpg" },
-];
-
-function loadProducts(filter = null) {
-  const container = document.getElementById('product-list');
-  container.innerHTML = '';
-
-  const filtered = filter ? products.filter(p => p.category === filter) : products;
-
-  filtered.forEach(p => {
-    container.innerHTML += `
-      <div class="product-card" onclick="viewProduct(${p.id})">
-        <img src="${p.image}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>₹${p.price}</p>
-        <button onclick="addToCart(${p.id}); event.stopPropagation();">Add to Cart</button>
-      </div>
-    `;
-  });
+// local cart helper (fast UI) + sync with backend
+function getLocalCart(){ return JSON.parse(localStorage.getItem('cart')||'[]'); }
+function saveLocalCart(cart){ localStorage.setItem('cart', JSON.stringify(cart)); updateHeaderCartCount(); }
+function updateHeaderCartCount(){
+  const cart = getLocalCart();
+  const count = cart.reduce((s,i)=>s+(i.quantity||1),0);
+  const el = document.getElementById('cartCount'); if(el) el.textContent = count;
+  const cartLinkCount = document.getElementById('cartCount'); if(cartLinkCount) cartLinkCount.textContent = count;
 }
+// add item locally & push to backend
+async function addToCartBackend(productId, qty=1){
+  // update local cache
+  const cart = getLocalCart();
+  const existing = cart.find(i=>i.product_id==productId);
+  if(existing){ existing.quantity += qty; } else cart.push({product_id:productId, quantity:qty});
+  saveLocalCart(cart);
 
-function filterProducts(category) {
-  loadProducts(category);
-}
-
-function viewProduct(id) {
-  localStorage.setItem('selectedProduct', id);
-  window.location.href = 'product-details.html';
-}
-
-function addToCart(id) {
-  alert("Added to cart: " + id);
+  // send to backend
+  try{
+    await fetch(`${API}/cart/add`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ user_id: userId, product_id: productId, quantity: qty })
+    });
+  }catch(e){ console.warn('backend cart add failed',e) }
+  showToast('Added to cart');
 }

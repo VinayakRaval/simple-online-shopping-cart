@@ -1,32 +1,27 @@
-<!-- ===== Flipkart-Style Header ===== -->
-<header class="navbar">
-  <!-- Logo -->
-  <div class="logo">
-    <a href="index.html">ShopEasy</a>
+<nav class="navbar">
+  <div class="nav-left">
+    <a class="logo" href="index.html">SimpleCart</a>
+    <div class="search-wrap">
+      <input id="globalSearch" placeholder="Search for products, brands and more">
+      <button id="searchBtn">Search</button>
+    </div>
   </div>
 
-  <!-- Search Bar -->
-  <div class="search-bar">
-    <input type="text" id="search-input" placeholder="Search for products, brands, and more..." />
-    <button onclick="searchProducts()">
-      🔍
-    </button>
+  <div class="nav-right">
+    <a href="products.html">Categories</a>
+    <a href="cart.html" id="cartLink">Cart (<span id="cartCount">0</span>)</a>
+    <a href="login.html">Login</a>
   </div>
-
-  <!-- Right Icons -->
-  <div class="nav-icons">
-    <a href="login.html"><i>👤</i> Login</a>
-    <a href="cart.html"><i>🛒</i> Cart</a>
-  </div>
-</header>
-
+</nav>
 <script>
-  // Product search functionality
-  function searchProducts() {
-    const query = document.getElementById("search-input").value.trim();
-    if (query) {
-      localStorage.setItem("searchQuery", query);
-      window.location.href = "products.html";
-    }
-  }
+  // header component small init: update cart count
+  (function(){
+    const cart = JSON.parse(localStorage.getItem('cart')||'[]');
+    document.getElementById('cartCount').textContent = cart.reduce((s,i)=>s+ (i.quantity||1),0);
+    // search hook
+    document.getElementById('searchBtn').addEventListener('click', ()=>{
+      const q = document.getElementById('globalSearch').value.trim();
+      if(q) window.location.href = `products.html?search=${encodeURIComponent(q)}`;
+    });
+  })();
 </script>

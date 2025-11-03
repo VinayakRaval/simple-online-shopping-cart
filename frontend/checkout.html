@@ -1,127 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checkout | Simple Online Shopping Cart</title>
-  <script src="js/auth.js"></script>
-  <script>checkLogin();</script>
-
-  <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/navbar.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Checkout — SimpleCart</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
-  <!-- Header -->
   <div id="header"></div>
+  <script>fetch('components/header.html').then(r=>r.text()).then(html=>document.getElementById('header').innerHTML=html);</script>
 
-  <main class="checkout-page">
-    <div class="checkout-container">
-      <h2>Checkout</h2>
-
-      <section class="address-section">
+  <main class="container checkout-page">
+    <h2>Checkout</h2>
+    <div class="checkout-grid">
+      <div class="checkout-form">
         <h3>Shipping Address</h3>
-        <textarea id="address" rows="4" placeholder="Enter your full address"></textarea>
-      </section>
-
-      <section class="order-summary">
+        <input id="shipName" placeholder="Full name">
+        <input id="shipPhone" placeholder="Phone">
+        <input id="shipEmail" placeholder="Email">
+        <textarea id="shipAddress" placeholder="House, Street, City, PIN"></textarea>
+      </div>
+      <div class="checkout-summary">
         <h3>Order Summary</h3>
-        <div id="summary-items"></div>
-        <p class="total">Total: ₹<span id="total-price">0</span></p>
-      </section>
-
-      <button id="place-order" class="btn-primary">Place Order</button>
+        <div id="summaryList"></div>
+        <div class="summary-total">Total: ₹<span id="summaryTotal">0</span></div>
+        <button id="placeOrder" class="btn">Place Order</button>
+      </div>
     </div>
   </main>
 
-  <!-- Footer -->
   <div id="footer"></div>
+  <script>fetch('components/footer.html').then(r=>r.text()).then(html=>document.getElementById('footer').innerHTML=html);</script>
 
   <script src="js/main.js"></script>
-  <script>
-    // ✅ Load header and footer dynamically
-    fetch("components/header.html").then(r => r.text()).then(html => document.getElementById("header").innerHTML = html);
-    fetch("components/footer.html").then(r => r.text()).then(html => document.getElementById("footer").innerHTML = html);
-
-    // ✅ Secure Fetch Wrapper
-    function secureFetch(url, options = {}) {
-      const safeUrl = url.startsWith("http") ? url : `http://localhost/simple-online-shopping-cart/backend${url}`;
-      return fetch(safeUrl, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...(options.headers || {})
-        },
-        credentials: "include"
-      });
-    }
-
-    const userId = localStorage.getItem("user_id") || 1; // For demo only
-    const summaryContainer = document.getElementById("summary-items");
-    const totalPriceEl = document.getElementById("total-price");
-
-    // ✅ Load Cart Items
-    function loadCartSummary() {
-      secureFetch(`/api/cart/view/${userId}`)
-        .then(res => res.json())
-        .then(items => {
-          summaryContainer.innerHTML = "";
-          let total = 0;
-
-          if (!items.length) {
-            summaryContainer.innerHTML = "<p>Your cart is empty.</p>";
-            return;
-          }
-
-          items.forEach(item => {
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "summary-item";
-            itemDiv.innerHTML = `
-              <p>${item.name} × ${item.quantity}</p>
-              <p>₹${item.price * item.quantity}</p>
-            `;
-            summaryContainer.appendChild(itemDiv);
-            total += item.price * item.quantity;
-          });
-
-          totalPriceEl.textContent = total.toFixed(2);
-        })
-        .catch(err => {
-          console.error("Error loading cart:", err);
-          summaryContainer.innerHTML = "<p>Failed to load cart summary.</p>";
-        });
-    }
-
-    // ✅ Place Order
-    document.getElementById("place-order").addEventListener("click", () => {
-      const address = document.getElementById("address").value.trim();
-      if (!address) {
-        alert("Please enter your shipping address.");
-        return;
-      }
-
-      secureFetch("/api/orders/place", {
-        method: "POST",
-        body: JSON.stringify({ user_id: userId, address })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            alert("✅ " + data.message);
-            localStorage.removeItem("cart"); // optional: clear cached cart
-            window.location.href = "orders.html"; // redirect to orders page
-          } else {
-            alert("❌ " + (data.error || "Failed to place order"));
-          }
-        })
-        .catch(err => {
-          console.error("Order failed:", err);
-          alert("Something went wrong while placing order.");
-        });
-    });
-
-    loadCartSummary();
-  </script>
-
+  <script src="js/cart.js"></script>
 </body>
 </html>

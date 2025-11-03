@@ -1,121 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simple Online Shopping Cart — Home</title>
-  <script src="js/auth.js"></script>
-  <script>checkLogin();</script>
-
-  <link rel="stylesheet" href="css/navbar.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SimpleCart — Home</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Header -->
   <div id="header"></div>
-  <script>
-    fetch('components/header.html')
-      .then(r => r.text())
-      .then(html => document.getElementById('header').innerHTML = html)
-      .catch(e => console.error('Header load failed', e));
-  </script>
+  <script>fetch('components/header.html').then(r=>r.text()).then(html=>document.getElementById('header').innerHTML=html);</script>
 
-  <!-- Hero / Banner -->
-  <section class="hero">
-    <h1>Welcome to Simple Online Shopping Cart</h1>
-    <p>Shop the latest products across all categories — demo build using XAMPP Secure Backend</p>
-    <a class="btn" href="products.html">Shop Now</a>
-  </section>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-left">
+        <h1>Shop the latest products</h1>
+        <p>Phones, laptops, fashion and more — demo catalog</p>
+        <a class="btn" href="products.html">Shop Now</a>
+      </div>
+      <img class="hero-img" src="assets/images/hero.jpg" alt="hero">
+    </section>
 
-  <!-- Categories -->
-  <section class="categories">
-    <h2>Top Categories</h2>
-    <div class="category-container">
-      <div class="category-card" onclick="goCategory('mobiles')">
-        <img src="assets/images/phones.jpg" alt="Phones">
-        <p>Mobiles</p>
+    <section class="categories">
+      <h2>Top Categories</h2>
+      <div class="category-grid" id="categoryGrid">
+        <!-- filled by JS -->
       </div>
-      <div class="category-card" onclick="goCategory('laptops')">
-        <img src="assets/images/laptops.jpg" alt="Laptops">
-        <p>Laptops</p>
-      </div>
-      <div class="category-card" onclick="goCategory('fashion')">
-        <img src="assets/images/fashion.jpg" alt="Fashion">
-        <p>Fashion</p>
-      </div>
-      <div class="category-card" onclick="goCategory('electronics')">
-        <img src="assets/images/electronics.jpg" alt="Electronics">
-        <p>Electronics</p>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Featured Products -->
-  <section class="featured">
-    <h2>Featured Products</h2>
-    <div id="product-list" class="product-container"></div>
-  </section>
+    <section class="featured">
+      <h2>Featured Products</h2>
+      <div id="featuredGrid" class="product-grid"></div>
+    </section>
+  </main>
 
-  <!-- Footer -->
   <div id="footer"></div>
-  <script>
-    fetch('components/footer.html')
-      .then(r => r.text())
-      .then(html => document.getElementById('footer').innerHTML = html)
-      .catch(e => console.error('Footer load failed', e));
-  </script>
+  <script>fetch('components/footer.html').then(r=>r.text()).then(html=>document.getElementById('footer').innerHTML=html);</script>
 
-  <!-- Scripts -->
-  <script>
-    // Redirect to category page
-    function goCategory(cat) {
-      window.location.href = `products.html?category=${encodeURIComponent(cat)}`;
-    }
-
-    // Load featured products dynamically
-    document.addEventListener('DOMContentLoaded', () => {
-      const list = document.getElementById('product-list');
-      fetch('../backend/api/products.php')
-        .then(r => r.json())
-        .then(products => {
-          if (!Array.isArray(products)) products = [];
-          products.slice(0, 8).forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'product-card';
-            card.innerHTML = `
-              <img src="../backend/static/uploads/${p.image || 'default.jpg'}" alt="${p.name}">
-              <h3>${p.name}</h3>
-              <p>₹${p.price}</p>
-              <button onclick="addToCart(${p.id},1)">Add to Cart</button>
-              <button onclick="viewProduct(${p.id})" style="margin-left:8px">View</button>
-            `;
-            list.appendChild(card);
-          });
-        })
-        .catch(err => {
-          console.error('Could not load products', err);
-          list.innerHTML = '<p>Unable to load featured products.</p>';
-        });
-    });
-
-    // View individual product page
-    function viewProduct(id) {
-      window.location.href = `product-details.html?id=${id}`;
-    }
-
-    // Add product to cart
-    function addToCart(productId, qty) {
-      fetch('../backend/api/cart.php?action=add', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ user_id: 1, product_id: productId, quantity: qty })
-      })
-      .then(r => r.json())
-      .then(resp => alert(resp.message || 'Added to cart'))
-      .catch(() => alert('Add to cart failed.'));
-    }
-  </script>
-
+  <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
 </body>
 </html>

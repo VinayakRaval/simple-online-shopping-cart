@@ -1,94 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Product Details — Simple Online Shopping Cart</title>
-  <link rel="stylesheet" href="css/navbar.css" />
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Product — SimpleCart</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Header -->
   <div id="header"></div>
-  <script>
-    fetch("components/header.html")
-      .then(res => res.text())
-      .then(html => document.getElementById("header").innerHTML = html);
-  </script>
+  <script>fetch('components/header.html').then(r=>r.text()).then(html=>document.getElementById('header').innerHTML=html);</script>
 
-  <main class="product-details-page">
-    <div id="product-details" class="product-details-container">
-      <p>Loading product details...</p>
-    </div>
+  <main class="container product-page">
+    <div id="productDetails" class="product-details"></div>
   </main>
 
-  <!-- Footer -->
   <div id="footer"></div>
-  <script>
-    fetch("components/footer.html")
-      .then(res => res.text())
-      .then(html => document.getElementById("footer").innerHTML = html);
-  </script>
+  <script>fetch('components/footer.html').then(r=>r.text()).then(html=>document.getElementById('footer').innerHTML=html);</script>
 
-  <script>
-    // ✅ Base API URL for XAMPP
-    const BASE_URL = "http://localhost/simple-online-shopping-cart/backend/api";
-
-    // ✅ Extract Product ID from query string
-    const params = new URLSearchParams(window.location.search);
-    const productId = params.get("id");
-
-    // ✅ Elements
-    const productContainer = document.getElementById("product-details");
-    const userId = localStorage.getItem("user_id") || 1; // Demo user for now
-
-    // ✅ Load product details securely
-    function loadProduct() {
-      fetch(`${BASE_URL}/products.php?id=${productId}`)
-        .then(res => res.json())
-        .then(product => {
-          if (!product || !product.id) {
-            productContainer.innerHTML = "<p>Product not found.</p>";
-            return;
-          }
-
-          productContainer.innerHTML = `
-            <div class="product-view">
-              <img src="../backend/static/uploads/${product.image || 'default.jpg'}" alt="${product.name}">
-              <div class="product-info">
-                <h2>${product.name}</h2>
-                <p class="price">₹${product.price}</p>
-                <p class="desc">${product.description}</p>
-                <p><strong>Category:</strong> ${product.category}</p>
-                <button id="add-to-cart" class="btn-primary">Add to Cart</button>
-              </div>
-            </div>
-          `;
-
-          // ✅ Add to Cart
-          document.getElementById("add-to-cart").addEventListener("click", () => {
-            fetch(`${BASE_URL}/cart.php?action=add`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                user_id: userId,
-                product_id: product.id,
-                quantity: 1
-              })
-            })
-              .then(res => res.json())
-              .then(data => alert(data.message || "Added to cart successfully!"))
-              .catch(() => alert("Failed to add to cart."));
-          });
-        })
-        .catch(err => {
-          console.error("Error loading product:", err);
-          productContainer.innerHTML = "<p>Failed to load product details.</p>";
-        });
-    }
-
-    // ✅ Load when page opens
-    loadProduct();
-  </script>
+  <script src="js/main.js"></script>
+  <script src="js/products.js"></script>
 </body>
 </html>

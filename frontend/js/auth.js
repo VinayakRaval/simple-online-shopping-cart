@@ -1,118 +1,110 @@
-// frontend/js/auth.js
+const BASE_URL = "http://127.0.0.1:5000/api/users";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const signupForm = document.getElementById("signupForm");
-  const loginForm = document.getElementById("loginForm");
-  const togglePassword = document.getElementById("togglePassword");
-  const passwordField = document.getElementById("password");
-  const passwordStrength = document.getElementById("passwordStrength");
-  const sendOtpBtn = document.getElementById("sendOtp");
-  const otpStatus = document.getElementById("otpStatus");
+// ===== MOCK OTP GENERATOR =====
+function generateMockOtp(key) {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  alert(`✅ Mock OTP: ${otp}`);
+  localStorage.setItem(key, otp);
+}
 
-  // ---------------------------
-  // Show/Hide Password Toggle
-  // ---------------------------
-  if (togglePassword && passwordField) {
-    togglePassword.addEventListener("click", () => {
-      const type = passwordField.type === "password" ? "text" : "password";
-      passwordField.type = type;
+// ===== SIGNUP =====
+const sendOtpBtn = document.getElementById("sendOtpBtn");
+if (sendOtpBtn) {
+  sendOtpBtn.addEventListener("click", () => generateMockOtp("mockOtp"));
+}
+
+const signupBtn = document.getElementById("signupBtn");
+if (signupBtn) {
+  signupBtn.addEventListener("click", async () => {
+    const fullname = document.getElementById("fullname").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const otp = document.getElementById("otp").value;
+    const password = document.getElementById("password").value;
+
+    const mockOtp = localStorage.getItem("mockOtp");
+    if (otp !== mockOtp) {
+      alert("❌ Invalid OTP. Please enter the correct mock OTP.");
+      return;
+    }
+
+    const res = await fetch(`${BASE_URL}/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ full_name: fullname, email, phone, password }),
     });
-  }
 
-  // ---------------------------
-  // Password Strength Checker
-  // ---------------------------
-  if (passwordField && passwordStrength) {
-    passwordField.addEventListener("input", () => {
-      const val = passwordField.value;
-      const hasNumber = /\d/.test(val);
-      if (val.length < 8 || !hasNumber) {
-        passwordStrength.textContent = "Password must have at least 8 characters and 1 number.";
-        passwordStrength.style.color = "#f3a712";
-      } else {
-        passwordStrength.textContent = "Strong password ✅";
-        passwordStrength.style.color = "#00ff88";
-      }
+    const data = await res.json();
+    alert(data.message);
+    if (res.ok) window.location.href = "login.html";
+  });
+}
+
+// ===== LOGIN =====
+const loginBtn = document.getElementById("loginBtn");
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+    const identifier = document.getElementById("loginInput").value;
+    const password = document.getElementById("loginPassword").value;
+
+    const res = await fetch(`${BASE_URL}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier, password }),
     });
-  }
 
-  // ---------------------------
-  // Mock OTP Send
-  // ---------------------------
-  if (sendOtpBtn) {
-    sendOtpBtn.addEventListener("click", () => {
-      const phone = document.getElementById("phone").value;
-      if (!phone) {
-        otpStatus.textContent = "Please enter a valid phone number.";
-        otpStatus.style.color = "orange";
-        return;
-      }
-      otpStatus.textContent = "OTP sent successfully ✅ (mock)";
-      otpStatus.style.color = "#00ff88";
+    const data = await res.json();
+    alert(data.message);
+    if (res.ok) window.location.href = "index.html";
+  });
+}
+
+// ===== FORGOT PASSWORD =====
+const sendForgotOtpBtn = document.getElementById("sendForgotOtpBtn");
+if (sendForgotOtpBtn) {
+  sendForgotOtpBtn.addEventListener("click", () => generateMockOtp("forgotOtp"));
+}
+
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+if (resetPasswordBtn) {
+  resetPasswordBtn.addEventListener("click", async () => {
+    const email = document.getElementById("forgotEmail").value;
+    const otp = document.getElementById("forgotOtp").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const mockOtp = localStorage.getItem("forgotOtp");
+
+    if (otp !== mockOtp) {
+      alert("❌ Invalid OTP. Please check and try again.");
+      return;
+    }
+
+    const res = await fetch(`${BASE_URL}/forgot_password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ identifier: email, newPassword }),
     });
-  }
 
-  // ---------------------------
-  // Signup Form Submit
-  // ---------------------------
-  if (signupForm) {
-    signupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    const data = await res.json();
+    alert(data.message);
+    if (res.ok) window.location.href = "login.html";
+  });
+}
 
-      const data = {
-        username: document.getElementById("username").value,
-        email: document.getElementById("email").value,
-        password: passwordField.value,
-      };
+// ===== SHOW / HIDE PASSWORD (Black SVG Eye) =====
+function setupEyeToggle(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  if (!input || !icon) return;
 
-      // Basic password check before submit
-      if (data.password.length < 8 || !/\d/.test(data.password)) {
-        alert("Please use a stronger password (8+ characters, include a number)");
-        return;
-      }
+  icon.addEventListener("click", () => {
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    icon.innerHTML = isHidden
+      ? `<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="black" width="22" height="22" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="black" width="22" height="22" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.477A3 3 0 0015 12m-2.42 2.42A3 3 0 0112 15c-4.478 0-8.268-2.943-9.542-7 0.61-1.943 1.805-3.66 3.405-4.95M15.54 8.46A9.957 9.957 0 0112 5c-4.478 0-8.268 2.943-9.542 7 0.313 1.002 0.752 1.937 1.3 2.786"/></svg>`;
+  });
+}
 
-      const res = await fetch("http://127.0.0.1:5000/api/users/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        alert("Signup successful! You can now login.");
-        window.location.href = "login.html";
-      } else {
-        alert(result.error || "Signup failed.");
-      }
-    });
-  }
-
-  // ---------------------------
-  // Login Form Submit
-  // ---------------------------
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const data = {
-        email: document.getElementById("email").value,
-        password: passwordField.value,
-      };
-
-      const res = await fetch("http://127.0.0.1:5000/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        alert("Login successful!");
-        localStorage.setItem("user", JSON.stringify(result.user));
-        window.location.href = "index.html";
-      } else {
-        alert(result.error || "Invalid credentials.");
-      }
-    });
-  }
-});
+setupEyeToggle("password", "togglePassword");
+setupEyeToggle("loginPassword", "toggleLoginPassword");
+setupEyeToggle("newPassword", "toggleForgotPassword");

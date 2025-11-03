@@ -1,73 +1,67 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request, jsonify
 from database import get_connection
-import bcrypt
+import hashlib, random
 
 users_bp = Blueprint("users", __name__)
 
-# ------------------------------
-# REGISTER new user
-# ------------------------------
-@users_bp.route("/register", methods=["POST"])
-def register_user():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+# ---------------- Signup ----------------
+@users_bp.route("/signup", methods=["POST"])
+def signup():
+    data = request.json
+    full_name = data.get("full_name")
     email = data.get("email")
-
-    if not all([username, password, email]):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    phone = data.get("phone")
+    password = hash_password(data.get("password"))
 
     conn = get_connection()
+    cur = conn.cursor()
     try:
-        conn.execute(
-            "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
-            (username, hashed, email)
+        cur.execute("SELECT * FROM users WHERE email=%s OR phone=%s", (email, phone))
+        if cur.fetchone():
+            return jsonify({"message": "Email or phone already exists"}), 400
+
+        cur.execute(
+            "INSERT INTO users (full_name, email, phone, password) VALUES (%s, %s, %s, %s)",
+            (full_name, email, phone, password),
         )
         conn.commit()
+        return jsonify({"message": "Account created successfully"}), 200
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
         conn.close()
-        return jsonify({"error": str(e)}), 400
 
-    conn.close()
-    return jsonify({"message": "User registered successfully"}), 201
-
-
-# ------------------------------
-# LOGIN user
-# ------------------------------
+# ---------------- Login ----------------
 @users_bp.route("/login", methods=["POST"])
-def login_user():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+def login():
+    data = request.json
+    identifier = data.get("identifier")
+    password = hash_password(data.get("password"))
 
     conn = get_connection()
-    user = conn.execute(
-        "SELECT * FROM users WHERE username = ?", (username,)
-    ).fetchone()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT * FROM users WHERE (email=%s OR phone=%s) AND password=%s",
+        (identifier, identifier, password),
+    )
+    user = cur.fetchone()
+    cur.close()
     conn.close()
 
-    if user and bcrypt.checkpw(password.encode('utf-8'), user["password"]):
-        return jsonify({
-            "message": "Login successful",
-            "user": {
-                "id": user["id"],
-                "username": user["username"],
-                "email": user["email"]
-            }
-        }), 200
+    if user:
+        return jsonify({"message": "Login successful"}), 200
     else:
-        return jsonify({"error": "Invalid username or password"}), 401
+        return jsonify({"message": "Invalid credentials"}), 401
 
-
-# ------------------------------
-# GET all users (Admin)
-# ------------------------------
-@users_bp.route("/", methods=["GET"])
-def get_all_users():
-    conn = get_connection()
-    users = conn.execute("SELECT id, username, email FROM users").fetchall()
-    conn.close()
-    return jsonify([dict(u) for u in users]), 200
+# ---------------- Forgot Password (Mock OTP) ----------------
+@users_bp.route("/forgot_password", methods=["POST"])
+def forgot_password():
+    data = request.json
+    identifier = data.get("identifier")
+    otp = random.randint(100000, 999999)
+    print(f"Mock OTP for {identifier}: {otp}")
+    return jsonify({"message": "Mock OTP generated successfully", "otp": otp}), 200
