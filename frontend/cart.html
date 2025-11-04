@@ -1,28 +1,43 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Cart — SimpleCart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>My Cart</title>
+  <style>
+    body{margin:0;font-family:Poppins;background:#0b1220;color:#e6eef8;}
+    .container{max-width:1000px;margin:auto;padding:20px;}
+    h2{text-align:center;color:#fff;}
+    .cart-item{display:flex;align-items:center;justify-content:space-between;background:#0f172a;margin:10px 0;padding:10px 16px;border-radius:10px;}
+    .cart-item img{width:80px;height:80px;object-fit:contain;border-radius:8px;}
+    .details{flex:1;margin-left:10px;}
+    .price{color:#00e0a8;font-weight:bold;}
+    button{background:#00b4db;border:none;border-radius:8px;padding:6px 10px;cursor:pointer;color:#02121a;}
+    .summary{text-align:right;padding:20px;font-size:18px;color:#fff;}
+    .checkout{background:#00e0a8;color:#02121a;padding:10px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;}
+  </style>
 </head>
 <body>
-  <div id="header"></div>
-  <script>fetch('components/header.html').then(r=>r.text()).then(html=>document.getElementById('header').innerHTML=html);</script>
+  <div id="header-root"></div>
+  <script>fetch("components/header.html").then(r=>r.text()).then(h=>document.getElementById("header-root").innerHTML=h);</script>
 
-  <main class="container cart-page">
+  <div class="container">
     <h2>Your Cart</h2>
-    <div id="cartItems" class="cart-items"></div>
-    <div class="cart-summary">
-      <div>Subtotal: ₹<span id="cartSubtotal">0</span></div>
-      <button id="toCheckout" class="btn">Proceed to Checkout</button>
+    <div id="cartItems"></div>
+    <div class="summary">
+      Total: ₹<span id="cartTotal">0</span>
+      <button class="checkout" onclick="goCheckout()">Checkout</button>
     </div>
-  </main>
+  </div>
+  <!-- Footer -->
+<div id="footer-root"></div>
+<script>
+  fetch("components/footer.html")
+    .then(r => r.text())
+    .then(h => document.getElementById("footer-root").innerHTML = h);
+</script>
 
-  <div id="footer"></div>
-  <script>fetch('components/footer.html').then(r=>r.text()).then(html=>document.getElementById('footer').innerHTML=html);</script>
 
-  <script src="js/main.js"></script>
   <script src="js/cart.js"></script>
 </body>
 </html>

@@ -1,27 +1,179 @@
-<nav class="navbar">
+<header class="navbar">
   <div class="nav-left">
-    <a class="logo" href="index.html">SimpleCart</a>
-    <div class="search-wrap">
-      <input id="globalSearch" placeholder="Search for products, brands and more">
-      <button id="searchBtn">Search</button>
-    </div>
+    <a href="index.html" class="logo">🛒 ShopSmart</a>
   </div>
 
   <div class="nav-right">
-    <a href="products.html">Categories</a>
-    <a href="cart.html" id="cartLink">Cart (<span id="cartCount">0</span>)</a>
-    <a href="login.html">Login</a>
+    <a href="products.html" class="nav-item">Products</a>
+    <a href="cart.html" class="nav-item">🛒 Cart <span id="cartCount" class="cart-count">0</span></a>
+
+    <div class="dropdown nav-item">
+      <span id="userMenuLabel">👤 Account</span>
+      <div class="dropdown-content" id="accountDropdown">
+        <a href="login.html" id="loginLink">Login</a>
+        <a href="signup.html" id="signupLink">Create Account</a>
+        <a href="orders.html" id="ordersLink" style="display:none;">My Orders</a>
+        <a href="profile.html" id="profileLink" style="display:none;">Profile</a>
+        <a href="#" id="logoutLink" style="display:none;">Logout</a>
+      </div>
+    </div>
   </div>
-</nav>
+</header>
+
+<!-- ✅ Toast Container -->
+<div id="toast-container"></div>
+
+<style>
+/* 🌙 Header Theme */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 28px;
+  background: linear-gradient(180deg, #0b1220, #0f172a);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 18px rgba(2, 6, 23, 0.6);
+}
+.logo {
+  font-weight: 700;
+  color: #00b4db;
+  text-decoration: none;
+  font-size: 1.3rem;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.nav-item {
+  color: #e6eef8;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s;
+}
+.nav-item:hover {
+  color: #00e0a8;
+}
+.cart-count {
+  background: #ff3b30;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+.dropdown {
+  position: relative;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: #071021;
+  border-radius: 8px;
+  padding: 6px 0;
+  min-width: 160px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+.dropdown-content a {
+  display: block;
+  padding: 10px 14px;
+  color: #e6eef8;
+  text-decoration: none;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+.dropdown-content a:hover {
+  background: #0b2740;
+}
+
+/* Toast */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+.toast {
+  background: #00b4db;
+  color: #02121a;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-weight: 600;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideIn 0.4s forwards;
+}
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+
 <script>
-  // header component small init: update cart count
-  (function(){
-    const cart = JSON.parse(localStorage.getItem('cart')||'[]');
-    document.getElementById('cartCount').textContent = cart.reduce((s,i)=>s+ (i.quantity||1),0);
-    // search hook
-    document.getElementById('searchBtn').addEventListener('click', ()=>{
-      const q = document.getElementById('globalSearch').value.trim();
-      if(q) window.location.href = `products.html?search=${encodeURIComponent(q)}`;
-    });
-  })();
+document.addEventListener("DOMContentLoaded", () => {
+  const userId = localStorage.getItem("user_id");
+  const cartCountEl = document.getElementById("cartCount");
+  const loginLink = document.getElementById("loginLink");
+  const signupLink = document.getElementById("signupLink");
+  const ordersLink = document.getElementById("ordersLink");
+  const profileLink = document.getElementById("profileLink");
+  const logoutLink = document.getElementById("logoutLink");
+  const userMenuLabel = document.getElementById("userMenuLabel");
+
+  // ✅ Update Cart Count
+  async function updateCartCount() {
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/cart/${userId || 1}`);
+      const items = await res.json();
+      const total = items.reduce((sum, i) => sum + i.quantity, 0);
+      cartCountEl.textContent = total;
+    } catch {
+      cartCountEl.textContent = "0";
+    }
+  }
+  updateCartCount();
+  window.updateCartBadge = updateCartCount;
+
+  // ✅ Toast
+  window.showToast = function (msg, isError = false) {
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.style.background = isError ? "#ff4b4b" : "#00b4db";
+    toast.innerText = msg;
+    document.getElementById("toast-container").appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  };
+
+  // ✅ User UI
+  if (userId) {
+    loginLink.style.display = "none";
+    signupLink.style.display = "none";
+    ordersLink.style.display = "block";
+    profileLink.style.display = "block";
+    logoutLink.style.display = "block";
+    fetch(`http://127.0.0.1:5000/api/users/${userId}`)
+      .then(r => r.json())
+      .then(u => {
+        if (u && u.fullname) userMenuLabel.textContent = `👋 ${u.fullname.split(" ")[0]}`;
+      })
+      .catch(() => (userMenuLabel.textContent = "👤 Account"));
+  }
+
+  logoutLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    localStorage.removeItem("user_id");
+    showToast("Logged out successfully");
+    setTimeout(() => (window.location.href = "login.html"), 1000);
+  });
+});
 </script>

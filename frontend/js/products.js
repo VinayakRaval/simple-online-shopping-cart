@@ -1,96 +1,96 @@
-// frontend/js/products.js
+const API = "http://127.0.0.1:5000/api";
+const user_id = localStorage.getItem("user_id") || 1;
 
-const BASE_URL = "http://127.0.0.1:5000/api"; // Flask backend URL
-const productsContainer = document.getElementById("products-container");
-const categoryButtons = document.querySelectorAll(".category-btn");
-
-// Load user ID from localStorage (fallback to guest = 1)
-const userId = localStorage.getItem("user_id") || 1;
-
-// Fetch all products on page load
 document.addEventListener("DOMContentLoaded", () => {
-  loadProducts();
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("q") || "";
+  const sort = params.get("sort") || "newest";
+
+  const searchInput = document.getElementById("searchInput");
+  const sortSelect = document.getElementById("sortSelect");
+
+  if (searchInput) searchInput.value = query;
+  if (sortSelect) sortSelect.value = sort;
+
+  loadProducts(query, sort);
+
+  // 🔍 Search button
+  document.getElementById("searchBtn").addEventListener("click", () => {
+    const q = searchInput.value.trim();
+    const s = sortSelect.value;
+    window.location.href = `products.html?q=${encodeURIComponent(q)}&sort=${s}`;
+  });
+
+  // ↕ Sort change
+  sortSelect.addEventListener("change", () => {
+    const q = searchInput.value.trim();
+    const s = sortSelect.value;
+    window.location.href = `products.html?q=${encodeURIComponent(q)}&sort=${s}`;
+  });
 });
 
-// Fetch products from backend
-async function loadProducts(category = null) {
+async function loadProducts(query = "", sort = "newest") {
+  const container = document.getElementById("productGrid");
+  container.innerHTML = "<p>Loading products...</p>";
+
   try {
-    const response = await fetch(`${BASE_URL}/products`);
-    const products = await response.json();
+    const res = await fetch(`${API}/products/`);
+    const products = await res.json();
 
-    // Filter by category if specified
-    const filteredProducts = category
-      ? products.filter((p) => p.category === category)
-      : products;
+    // 🔎 Filter by search
+    let filtered = products.filter(p =>
+      p.name.toLowerCase().includes(query.toLowerCase())
+    );
 
-    displayProducts(filteredProducts);
-  } catch (error) {
-    console.error("Error loading products:", error);
+    // ↕ Sort
+    if (sort === "low") filtered.sort((a, b) => a.price - b.price);
+    else if (sort === "high") filtered.sort((a, b) => b.price - a.price);
+    else filtered.reverse(); // newest first if API returns oldest first
+
+    // 🧱 Render
+    if (filtered.length === 0) {
+      container.innerHTML = `<p style="text-align:center;color:#b6c8d8;">No products found for "${query}".</p>`;
+      return;
+    }
+
+    container.innerHTML = filtered
+      .map(
+        (p) => `
+        <div class="product-card">
+          <img src="assets/images/${p.image}" alt="${p.name}">
+          <h4 class="p-title">${p.name}</h4>
+          <div class="p-price">₹${p.price}</div>
+          <div class="p-actions">
+            <button class="btn add" onclick="addToCart(${p.id})">Add to Cart</button>
+            <button class="btn view" onclick="viewProduct(${p.id})">View</button>
+          </div>
+        </div>
+      `
+      )
+      .join("");
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = "<p>Failed to load products.</p>";
   }
 }
 
-// Display products as cards
-function displayProducts(products) {
-  productsContainer.innerHTML = "";
-
-  if (!products.length) {
-    productsContainer.innerHTML = "<p class='no-products'>No products found.</p>";
-    return;
-  }
-
-  products.forEach((product) => {
-    const card = document.createElement("div");
-    card.classList.add("product-card");
-
-    // Load image directly from database folder
-    const imagePath = `../../database/products_images/${product.image}`;
-
-    card.innerHTML = `
-      <div class="product-image">
-        <img src="${imagePath}" alt="${product.name}" onerror="this.src='../../frontend/assets/images/placeholder.png'">
-      </div>
-      <div class="product-details">
-        <h3>${product.name}</h3>
-        <p class="category">${product.category}</p>
-        <p class="price">₹${product.price.toLocaleString()}</p>
-        <p class="description">${product.description}</p>
-        <button class="add-to-cart-btn" onclick="addToCart(${product.id})">🛒 Add to Cart</button>
-      </div>
-    `;
-
-    productsContainer.appendChild(card);
-  });
-}
-
-// Add to Cart Function
-async function addToCart(productId) {
+async function addToCart(product_id) {
   try {
-    const response = await fetch(`${BASE_URL}/cart/add`, {
+    const res = await fetch(`${API}/cart/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: userId,
-        product_id: productId,
-        quantity: 1,
-      }),
+      body: JSON.stringify({ user_id, product_id, quantity: 1 }),
     });
 
-    const result = await response.json();
-    if (response.ok) {
-      alert(`✅ ${result.message || "Added to cart successfully!"}`);
-    } else {
-      alert(`❌ ${result.error || "Failed to add to cart"}`);
-    }
-  } catch (error) {
-    console.error("Error adding to cart:", error);
-    alert("⚠️ Unable to add to cart. Please try again.");
+    const data = await res.json();
+    if (res.ok) showToast("✅ Item added to cart");
+    else showToast("⚠️ " + data.error, true);
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Failed to add to cart", true);
   }
 }
 
-// Category Filter Buttons
-categoryButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const selectedCategory = btn.dataset.category;
-    loadProducts(selectedCategory);
-  });
-});
+function viewProduct(id) {
+  window.location.href = `product-details.html?id=${id}`;
+}

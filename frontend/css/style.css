@@ -583,3 +583,172 @@ body{
   font-size: 18px;
   color: #555;
 }
+/* ======= GLOBAL DARK THEME ======= */
+* {
+  box-sizing: border-box;
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+  font-family: "Poppins", system-ui, sans-serif;
+  background-color: #0b1220;
+  color: #e6eef8;
+  line-height: 1.5;
+}
+
+/* ======= CONTAINERS ======= */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ======= BUTTONS ======= */
+.btn {
+  background: #00b4db;
+  color: #02121a;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn:hover {
+  background: #00e0a8;
+}
+
+/* Secondary button */
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e6eef8;
+}
+.btn-outline:hover {
+  border-color: #00b4db;
+  color: #00e0a8;
+}
+
+/* ======= INPUTS ======= */
+input,
+textarea,
+select {
+  width: 100%;
+  background: #0f172a;
+  color: #e6eef8;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 10px;
+  border-radius: 8px;
+  outline: none;
+  margin: 8px 0;
+}
+input:focus,
+textarea:focus {
+  border-color: #00b4db;
+}
+
+/* ======= LINKS ======= */
+a {
+  color: #00b4db;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ======= SECTIONS ======= */
+section {
+  padding: 40px 6%;
+}
+
+/* ======= CARDS ======= */
+.card {
+  background: linear-gradient(180deg, #071827, #0e2740);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  transition: 0.2s;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* ======= GRID ======= */
+.grid {
+  display: grid;
+  gap: 20px;
+}
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* ======= TEXT ======= */
+h1, h2, h3, h4 {
+  color: #fff;
+  margin-bottom: 10px;
+}
+p {
+  color: #b6c8d8;
+}
+
+/* ======= ALERTS ======= */
+.alert {
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+.alert-success {
+  background: #00e0a830;
+  border-left: 4px solid #00e0a8;
+}
+.alert-error {
+  background: #ff4b5030;
+  border-left: 4px solid #ff4b50;
+}
+
+/* ======= RESPONSIVE ======= */
+@media (max-width: 768px) {
+  section {
+    padding: 30px 20px;
+  }
+  .container {
+    padding: 16px;
+  }
+}
+/* 🔥 Gradient Heading Fix */
+.categories h2,
+.featured h2 {
+  font-size: 1.8rem !important;
+  font-weight: 700;
+  margin-bottom: 18px;
+  text-align: left;
+  background: linear-gradient(90deg, #00b4db, #00e0a8);
+  -webkit-text-fill-color: transparent;
+  color: transparent !important;
+  text-shadow: 0 0 10px rgba(0, 224, 168, 0.25);
+  letter-spacing: 0.6px;
+  position: relative;
+  display: inline-block;
+}
+
+/* ✨ Hover Underline Animation */
+.categories h2::after,
+.featured h2::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: linear-gradient(90deg, #00b4db, #00e0a8);
+  transition: width 0.3s ease-in-out;
+  border-radius: 3px;
+}
+.categories h2:hover::after,
+.featured h2:hover::after {
+  width: 100%;
+}

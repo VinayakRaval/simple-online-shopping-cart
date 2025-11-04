@@ -27,3 +27,15 @@ python -c "from database import init_db; init_db()"
 ✅ You should see:
 
 ✅ Database initialized successfully!
+
+
+
+images adding like this 
+
+INSERT INTO products (name, price, image, category, description)
+VALUES
+('OnePlus 9', 45999, 'oneplus9.jpg', 'Phones', 'Flagship killer smartphone'),
+('iPhone 14', 79999, 'iphone14.jpg', 'Phones', 'Apple A15 Bionic, 128GB Storage'),
+('HP Laptop', 55999, 'hp-laptop.jpg', 'Laptops', 'Core i5 12th Gen, 8GB RAM, 512GB SSD'),
+('Sony Headphones', 4999, 'sony-headphones.jpg', 'Accessories', 'Noise cancelling headphones'),
+('Samsung Galaxy S23', 84999, 's23.jpg', 'Phones', '8GB RAM, 256GB Storage, Snapdragon 8 Gen 2');

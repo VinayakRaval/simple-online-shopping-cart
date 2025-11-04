@@ -1,38 +1,30 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Checkout — SimpleCart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Checkout | ShopSmart</title>
+  <style>
+    body{margin:0;font-family:Poppins;background:#0b1220;color:#e6eef8;}
+    .container{max-width:700px;margin:auto;padding:20px;}
+    h2{text-align:center;color:#fff;}
+    input,textarea{width:100%;margin:8px 0;padding:10px;border:none;border-radius:8px;background:#0f172a;color:#fff;}
+    button{width:100%;padding:10px;border:none;border-radius:8px;background:#00e0a8;color:#02121a;font-weight:bold;cursor:pointer;}
+  </style>
 </head>
 <body>
-  <div id="header"></div>
-  <script>fetch('components/header.html').then(r=>r.text()).then(html=>document.getElementById('header').innerHTML=html);</script>
+  <div id="header-root"></div>
+  <script>fetch("components/header.html").then(r=>r.text()).then(h=>document.getElementById("header-root").innerHTML=h);</script>
 
-  <main class="container checkout-page">
+  <div class="container">
     <h2>Checkout</h2>
-    <div class="checkout-grid">
-      <div class="checkout-form">
-        <h3>Shipping Address</h3>
-        <input id="shipName" placeholder="Full name">
-        <input id="shipPhone" placeholder="Phone">
-        <input id="shipEmail" placeholder="Email">
-        <textarea id="shipAddress" placeholder="House, Street, City, PIN"></textarea>
-      </div>
-      <div class="checkout-summary">
-        <h3>Order Summary</h3>
-        <div id="summaryList"></div>
-        <div class="summary-total">Total: ₹<span id="summaryTotal">0</span></div>
-        <button id="placeOrder" class="btn">Place Order</button>
-      </div>
-    </div>
-  </main>
+    <input id="name" placeholder="Full Name" />
+    <input id="email" placeholder="Email" />
+    <input id="phone" placeholder="Phone" />
+    <textarea id="address" placeholder="Full Address"></textarea>
+    <button onclick="placeOrder()">Place Order</button>
+  </div>
 
-  <div id="footer"></div>
-  <script>fetch('components/footer.html').then(r=>r.text()).then(html=>document.getElementById('footer').innerHTML=html);</script>
-
-  <script src="js/main.js"></script>
-  <script src="js/cart.js"></script>
+  <script src="js/checkout.js"></script>
 </body>
 </html>

@@ -1,23 +1,79 @@
-<footer class="site-footer">
-  <div class="footer-inner">
+<!-- components/footer.html -->
+<footer class="footer">
+  <div class="footer-content">
     <div class="col">
-      <h4>Company</h4>
-      <a href="index.html">About</a>
-      <a href="#">Careers</a>
-      <a href="#">Blog</a>
+      <h3>ShopSmart</h3>
+      <p>Your trusted online store for the latest electronics, fashion, and more.</p>
     </div>
+
+    <div class="col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">Cart</a>
+      <a href="orders.html">My Orders</a>
+    </div>
+
     <div class="col">
       <h4>Support</h4>
       <a href="#">Help Center</a>
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
-    </div>
-    <div class="col">
-      <h4>Contact</h4>
-      <p>contact@simplecart.local</p>
-      <p>+91 98765 43210</p>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms & Conditions</a>
     </div>
   </div>
-  <div class="footer-bottom">© <span id="year"></span> SimpleCart — Demo</div>
+
+  <div class="footer-bottom">
+    <p>© <span id="year"></span> ShopSmart. All rights reserved.</p>
+  </div>
 </footer>
-<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+<style>
+.footer {
+  background: linear-gradient(180deg,#081627,#0b1220);
+  color: #b6c8d8;
+  padding: 40px 6%;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 30px;
+  max-width: 1200px;
+  margin: auto;
+}
+.footer-content .col {
+  flex: 1;
+  min-width: 200px;
+}
+.footer-content h3 {
+  color: #00b4db;
+  margin-bottom: 10px;
+}
+.footer-content h4 {
+  color: #e6eef8;
+  margin-bottom: 8px;
+}
+.footer-content a {
+  display: block;
+  color: #b6c8d8;
+  text-decoration: none;
+  margin: 5px 0;
+  transition: 0.2s;
+}
+.footer-content a:hover {
+  color: #00e0a8;
+}
+.footer-bottom {
+  text-align: center;
+  padding-top: 20px;
+  color: #8799a8;
+  font-size: 14px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 20px;
+}
+</style>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>

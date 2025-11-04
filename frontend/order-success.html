@@ -2,89 +2,66 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order Success | Simple Shopping Cart</title>
-  <link rel="stylesheet" href="css/style.css" />
-  <script>
-    // Extract order_id from query string (?order_id=123)
-    function getOrderId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("order_id") || "N/A";
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const orderId = getOrderId();
-      document.getElementById("orderId").textContent = orderId;
-    });
-  </script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Order Confirmed | ShopSmart</title>
   <style>
-    .success-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 80vh;
-      text-align: center;
-      background: #f9fafb;
-      padding: 40px 20px;
+    body {
+      margin:0;
+      font-family:Poppins,system-ui;
+      background:#0b1220;
+      color:#e6eef8;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
     }
     .success-box {
-      background: #fff;
-      padding: 30px 50px;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      max-width: 500px;
+      text-align:center;
+      background:linear-gradient(180deg,#071827,#0e2740);
+      border-radius:16px;
+      padding:40px 30px;
+      box-shadow:0 8px 30px rgba(0,0,0,0.4);
+      max-width:400px;
     }
-    .success-box h1 {
-      color: #16a34a;
-      font-size: 28px;
-      margin-bottom: 10px;
+    .success-box h2 {color:#00e0a8;margin-bottom:8px;}
+    .success-box p {color:#b6c8d8;margin:5px 0;}
+    .order-id {
+      display:inline-block;
+      margin:10px 0;
+      padding:8px 16px;
+      background:#10243d;
+      border-radius:8px;
+      font-weight:600;
+      color:#00b4db;
     }
-    .success-box p {
-      margin: 8px 0;
-      color: #333;
-    }
-    .success-box button {
-      margin-top: 20px;
-      background: #2563eb;
-      color: #fff;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: background 0.3s;
-    }
-    .success-box button:hover {
-      background: #1e40af;
+    .btn {
+      display:inline-block;
+      background:#00b4db;
+      color:#02121a;
+      border:none;
+      padding:10px 20px;
+      border-radius:8px;
+      margin-top:20px;
+      cursor:pointer;
+      text-decoration:none;
+      font-weight:600;
     }
   </style>
 </head>
 <body>
-  <!-- Include Header -->
-  <div id="header-placeholder"></div>
-  <script>
-    fetch("components/header.html").then(r => r.text()).then(d => {
-      document.getElementById("header-placeholder").innerHTML = d;
-    });
-  </script>
-
-  <div class="success-container">
-    <div class="success-box">
-      <h1>🎉 Thank You for Your Purchase!</h1>
-      <p>Your order has been successfully placed.</p>
-      <p><strong>Order ID:</strong> <span id="orderId"></span></p>
-      <p>We’ll send updates when your items are shipped.</p>
-      <button onclick="window.location.href='index.html'">Continue Shopping</button>
-    </div>
+  <div class="success-box">
+    <h2>✅ Order Placed Successfully!</h2>
+    <p>Thank you for shopping with ShopSmart.</p>
+    <div class="order-id" id="orderId">Order #0000</div>
+    <p>We’ll send an email once your order ships.</p>
+    <a href="index.html" class="btn">Continue Shopping</a>
   </div>
 
-  <!-- Include Footer -->
-  <div id="footer-placeholder"></div>
   <script>
-    fetch("components/footer.html").then(r => r.text()).then(d => {
-      document.getElementById("footer-placeholder").innerHTML = d;
-    });
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("order_id") || localStorage.getItem("last_order_id") || "N/A";
+    document.getElementById("orderId").textContent = `Order #${orderId}`;
+    localStorage.removeItem("cart");
   </script>
 </body>
 </html>

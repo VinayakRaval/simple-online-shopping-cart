@@ -1,32 +1,115 @@
-// small shared helpers
 const API = "http://127.0.0.1:5000/api";
-const userId = localStorage.getItem('user_id') || 1;
+const user_id = localStorage.getItem("user_id") || 1;
 
-function showToast(msg){ alert(msg); }
+document.addEventListener("DOMContentLoaded", () => {
+  loadCategories();
+  loadFeaturedProducts();
+});
 
-// local cart helper (fast UI) + sync with backend
-function getLocalCart(){ return JSON.parse(localStorage.getItem('cart')||'[]'); }
-function saveLocalCart(cart){ localStorage.setItem('cart', JSON.stringify(cart)); updateHeaderCartCount(); }
-function updateHeaderCartCount(){
-  const cart = getLocalCart();
-  const count = cart.reduce((s,i)=>s+(i.quantity||1),0);
-  const el = document.getElementById('cartCount'); if(el) el.textContent = count;
-  const cartLinkCount = document.getElementById('cartCount'); if(cartLinkCount) cartLinkCount.textContent = count;
+// 🏷️ Shop by Category (Dynamic)
+function loadCategories() {
+  const categories = [
+    { name: "Phones", image: "cat-phones.jpg" },
+    { name: "Laptops", image: "cat-laptops.jpg" },
+    { name: "Accessories", image: "cat-accessories.jpg" },
+    { name: "Smartwatches", image: "cat-watches.jpg" },
+    { name: "Headphones", image: "cat-headphones.jpg" },
+  ];
+
+  const container = document.getElementById("categoryGrid");
+  container.innerHTML = categories
+    .map(
+      (c) => `
+      <div class="cat-card" onclick="filterByCategory('${c.name}')">
+        <img src="assets/images/${c.image}" alt="${c.name}">
+        <h4>${c.name}</h4>
+      </div>
+    `
+    )
+    .join("");
 }
-// add item locally & push to backend
-async function addToCartBackend(productId, qty=1){
-  // update local cache
-  const cart = getLocalCart();
-  const existing = cart.find(i=>i.product_id==productId);
-  if(existing){ existing.quantity += qty; } else cart.push({product_id:productId, quantity:qty});
-  saveLocalCart(cart);
 
-  // send to backend
-  try{
-    await fetch(`${API}/cart/add`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ user_id: userId, product_id: productId, quantity: qty })
+function filterByCategory(cat) {
+  window.location.href = `products.html?category=${encodeURIComponent(cat)}`;
+}
+
+// 🛍️ Featured Products
+async function loadFeaturedProducts() {
+  const grid = document.getElementById("featuredGrid");
+  grid.innerHTML = "<p>Loading featured items...</p>";
+
+  try {
+    const res = await fetch(`${API}/products/`);
+    const products = await res.json();
+    const featured = products.slice(0, 12);
+
+    grid.innerHTML = featured
+      .map(
+        (p) => `
+      <div class="product-card">
+        <img src="assets/images/${p.image}" alt="${p.name}">
+        <h4 class="p-title">${p.name}</h4>
+        <div class="p-price">₹${p.price}</div>
+        <div class="p-actions">
+          <button class="add" onclick="addToCart(${p.id})">Add</button>
+          <button class="view" onclick="viewProduct(${p.id})">View</button>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  } catch (err) {
+    console.error("Error loading featured:", err);
+    grid.innerHTML = "<p>Failed to load featured products.</p>";
+  }
+}
+
+// 🛒 Add to Cart with Toast + Count Update
+async function addToCart(product_id) {
+  try {
+    const res = await fetch(`${API}/cart/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id, product_id, quantity: 1 }),
     });
-  }catch(e){ console.warn('backend cart add failed',e) }
-  showToast('Added to cart');
+    const data = await res.json();
+
+    if (res.ok) {
+      showToast("✅ Added to cart!");
+      updateCartCount();
+    } else {
+      showToast("⚠️ " + data.error, true);
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("❌ Failed to add to cart", true);
+  }
+}
+
+// 🔔 Toast Notification
+function showToast(message, isError = false) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.style.background = isError ? "#ff4b4b" : "#00b4db";
+  toast.innerText = message;
+  document.getElementById("toast-container").appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// 🧮 Update Cart Count
+async function updateCartCount() {
+  try {
+    const res = await fetch(`${API}/cart/${user_id}`);
+    const items = await res.json();
+    const total = items.reduce((sum, i) => sum + i.quantity, 0);
+    document.getElementById("cartCount").innerText = total;
+    document.getElementById("floatCount").innerText = total;
+  } catch {
+    document.getElementById("cartCount").innerText = "0";
+  }
+}
+
+// 👁️ View Product
+function viewProduct(id) {
+  window.location.href = `product-details.html?id=${id}`;
 }

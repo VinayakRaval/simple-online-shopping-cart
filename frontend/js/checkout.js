@@ -1,72 +1,20 @@
-document.addEventListener("DOMContentLoaded", () => {
-  loadCartSummary();
+const API = "http://127.0.0.1:5000";
+const user_id = localStorage.getItem("user_id") || 1;
 
-  document.getElementById("placeOrderBtn").addEventListener("click", async () => {
-    const address = {
-      fullname: document.getElementById("fullname").value.trim(),
-      phone: document.getElementById("phone").value.trim(),
-      address: document.getElementById("address").value.trim(),
-      city: document.getElementById("city").value.trim(),
-      zipcode: document.getElementById("zipcode").value.trim(),
-    };
+async function placeOrder(){
+  const name=document.getElementById("name").value.trim();
+  const email=document.getElementById("email").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const address=document.getElementById("address").value.trim();
+  if(!name || !email || !phone || !address) return alert("Please fill all fields!");
 
-    if (!address.fullname || !address.phone || !address.address) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
-    const storedCart = localStorage.getItem("cart");
-    const cartItems = storedCart ? JSON.parse(storedCart) : [];
-
-    if (cartItems.length === 0) {
-      alert("Your cart is empty.");
-      return;
-    }
-
-    const response = await fetch("http://localhost/backend/api/orders.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        address: `${address.fullname}, ${address.phone}, ${address.address}, ${address.city} - ${address.zipcode}`,
-        cartItems: cartItems,
-      }),
-      credentials: "include"
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      alert("✅ Order placed successfully!");
-      localStorage.removeItem("cart");
-      window.location.href = "index.html";
-    } else {
-      alert("❌ " + (data.error || "Order failed."));
-    }
-  });
-});
-
-function loadCartSummary() {
-  const orderSummary = document.getElementById("orderSummary");
-  const orderTotal = document.getElementById("orderTotal");
-  const storedCart = localStorage.getItem("cart");
-  const cartItems = storedCart ? JSON.parse(storedCart) : [];
-
-  if (cartItems.length === 0) {
-    orderSummary.innerHTML = "<p class='empty-msg'>Your cart is empty.</p>";
-    return;
-  }
-
-  let total = 0;
-  orderSummary.innerHTML = "";
-
-  cartItems.forEach(item => {
-    const price = (item.price * item.quantity).toFixed(2);
-    total += parseFloat(price);
-    const div = document.createElement("div");
-    div.classList.add("order-item");
-    div.innerHTML = `<span>${item.name} (x${item.quantity})</span><span>₹${price}</span>`;
-    orderSummary.appendChild(div);
+  const res = await fetch(`${API}/api/orders/place`, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({user_id,name,email,phone,address})
   });
 
-  orderTotal.textContent = `Total: ₹${total.toFixed(2)}`;
+  const data = await res.json();
+  alert(data.message || "Order placed!");
+  if(res.ok) window.location.href = "order-success.html";
 }
