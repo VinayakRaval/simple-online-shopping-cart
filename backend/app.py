@@ -1,26 +1,29 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
-from database import init_db
-from routes.products import products_bp
+
+# Import all routes
 from routes.users import users_bp
+from routes.products import products_bp
 from routes.cart import cart_bp
 from routes.orders import orders_bp
-from routes.otp import otp_bp
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend", static_url_path="")
 CORS(app)
 
-init_db()
-
-app.register_blueprint(products_bp, url_prefix="/api/products")
+# Register blueprints
 app.register_blueprint(users_bp, url_prefix="/api/users")
+app.register_blueprint(products_bp, url_prefix="/api/products")
 app.register_blueprint(cart_bp, url_prefix="/api/cart")
 app.register_blueprint(orders_bp, url_prefix="/api/orders")
-app.register_blueprint(otp_bp, url_prefix="/api/otp")
 
-@app.route('/')
-def home():
-    return {"message": "Simple Online Shopping Cart API is running"}
+# Serve frontend files (login, index, etc.)
+@app.route("/")
+def serve_home():
+    return send_from_directory(app.static_folder, "login.html")  # Always open login first
+
+@app.route("/<path:filename>")
+def serve_static(filename):
+    return send_from_directory(app.static_folder, filename)
 
 if __name__ == "__main__":
     app.run(debug=True)

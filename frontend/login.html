@@ -3,70 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login | ShopSmart</title>
+  <title>Login — ShopSmart</title>
+  <link rel="stylesheet" href="css/style.css" />
   <style>
-    * {margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif;}
     body {
-      min-height:100vh;
-      background:linear-gradient(135deg,#0f172a,#071021);
-      color:#e6eef8;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      background: linear-gradient(135deg, #0b1220, #0f172a);
+      font-family: "Poppins", sans-serif;
+      color: #e6eef8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .login-box {
-      background:#0b1220;
-      padding:40px;
-      border-radius:12px;
-      width:340px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.5);
-      text-align:center;
+      background: #0b1228;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+      width: 360px;
+      text-align: center;
     }
-    h2 {color:#00b4db;margin-bottom:24px;}
+    h2 { color: #00b4db; margin-bottom: 20px; }
     input {
-      width:100%;
-      padding:10px 12px;
-      margin:8px 0;
-      border:none;
-      border-radius:6px;
-      background:#0f1a2e;
-      color:#fff;
-      outline:none;
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #071427;
+      color: #e6eef8;
+      outline: none;
     }
-    input:focus {border:1px solid #00b4db;}
     button {
-      width:100%;
-      background:#00b4db;
-      border:none;
-      padding:10px;
-      color:#02121a;
-      border-radius:8px;
-      font-weight:600;
-      cursor:pointer;
-      margin-top:10px;
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      background: #00b4db;
+      color: #02121a;
+      cursor: pointer;
     }
-    button:hover {background:#00e0a8;}
-    a {
-      color:#9fb6c7;
-      font-size:14px;
-      text-decoration:none;
-    }
-    a:hover {color:#00e0a8;}
+    button:hover { background: #00e0a8; }
+    a { color: #00b4db; text-decoration: none; font-size: 0.9rem; }
   </style>
 </head>
 <body>
   <div class="login-box">
-    <h2>Login to ShopSmart</h2>
+    <h2>Login</h2>
     <input type="text" id="loginInput" placeholder="Email or Phone" />
-    <div style="position:relative;">
-      <input type="password" id="loginPassword" placeholder="Password" />
-      <span id="toggleLoginPassword" style="position:absolute;right:10px;top:12px;cursor:pointer;">👁️</span>
-    </div>
+    <input type="password" id="loginPassword" placeholder="Password" />
     <button id="loginBtn">Login</button>
-    <div style="margin-top:15px;">
-      <a href="signup.html">Create Account</a> | 
-      <a href="forgot_password.html">Forgot Password?</a>
-    </div>
+    <p>Forgot your password? <a href="forgot_password.html">Reset Here</a></p>
+    <p>Don’t have an account? <a href="signup.html">Sign up</a></p>
   </div>
 
   <script src="js/auth.js"></script>

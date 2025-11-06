@@ -1,164 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Checkout — ShopSmart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body{background:linear-gradient(180deg,#0b1220,#0f172a);color:#e6eef8;font-family:Poppins,system-ui;margin:0}
+    .checkout-container{max-width:760px;margin:40px auto;background:#0b1228;padding:24px;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,0.5)}
+    h2{color:#00b4db;margin:0 0 14px}
+    label{display:block;margin:12px 0 6px;color:#9fb6c7}
+    input, textarea{width:100%;padding:12px;border-radius:8px;border:none;background:#071427;color:#e6eef8;outline:none}
+    .summary{background:#071827;padding:12px;border-radius:8px;margin-bottom:12px}
+    .actions{display:flex;gap:12px;align-items:center}
+    .btn{background:#00b4db;color:#02121a;padding:10px 16px;border-radius:8px;border:none;font-weight:700;cursor:pointer}
+    .btn.secondary{background:transparent;color:#e6eef8;border:1px solid rgba(255,255,255,0.06)}
+    .small{font-size:0.9rem;color:#b6c8d8}
+  </style>
 </head>
 <body>
   <div id="header-root"></div>
-  <script>
-    fetch("components/header.html")
-      .then(r=>r.text())
-      .then(h=>document.getElementById("header-root").innerHTML=h);
-  </script>
+  <script>fetch("components/header.html").then(r=>r.text()).then(h=>document.getElementById("header-root").innerHTML=h);</script>
 
-  <section class="checkout-container">
-    <h2>Checkout</h2>
-    <div class="checkout-grid">
-      <div class="left">
-        <h3>Shipping Details</h3>
-        <form id="checkoutForm">
-          <label>Full Name</label>
-          <input type="text" id="name" placeholder="Enter your name" required>
+  <div class="checkout-container">
+    <h2>Customer Details</h2>
 
-          <label>Email</label>
-          <input type="email" id="email" placeholder="example@mail.com" required>
+    <div id="selectedProduct" class="summary" style="display:none;"></div>
 
-          <label>Phone</label>
-          <input type="text" id="phone" placeholder="10-digit number" required>
+    <form id="checkoutForm">
+      <label>Full name</label>
+      <input id="name" required />
 
-          <label>Address</label>
-          <textarea id="address" placeholder="Full delivery address" required></textarea>
+      <label>Address</label>
+      <textarea id="address" rows="3" required></textarea>
 
-          <button type="submit" class="btn place-btn">Place Order</button>
-        </form>
+      <label>Phone</label>
+      <input id="phone" type="tel" required />
+
+      <div style="margin-top:12px" class="actions">
+        <button type="submit" class="btn" id="placeOrderBtn">Place Order</button>
+        <button type="button" class="btn secondary" id="cancelBtn">Cancel</button>
       </div>
-
-      <div class="right">
-        <h3>Order Summary</h3>
-        <div id="summaryContainer">Loading...</div>
-        <div class="summary-total">
-          <strong>Total:</strong> ₹<span id="summaryTotal">0</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div id="footer-root"></div>
-  <script>
-    fetch("components/footer.html")
-      .then(r=>r.text())
-      .then(h=>document.getElementById("footer-root").innerHTML=h);
-  </script>
+      <p class="small" style="margin-top:10px">Payment: Cash on Delivery (COD) — payment step removed as requested.</p>
+    </form>
+  </div>
 
   <div id="toast-container"></div>
-  <script src="js/checkout.js"></script>
+
+  <script>
+    const ORDERS_API = "http://127.0.0.1:5000/api/orders";
+    const CART_API = "http://127.0.0.1:5000/api/cart";
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get("product_id"); // if present, single-product checkout
+
+    function showToast(msg, isError=false){
+      const c = document.getElementById("toast-container");
+      const t = document.createElement("div");
+      t.className = "toast";
+      t.style.background = isError ? "#ff4b4b" : "#00b4db";
+      t.style.color = isError ? "#fff" : "#02121a";
+      t.style.padding = "10px 14px";
+      t.style.borderRadius = "8px";
+      t.style.marginTop = "8px";
+      t.innerText = msg;
+      c.appendChild(t);
+      setTimeout(()=>t.remove(),3000);
+    }
+
+    // If productId present, show summary for single product
+    async function loadSingleProductSummary(id){
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/products/${id}`);
+        if (!res.ok) throw new Error("Product not found");
+        const p = await res.json();
+        document.getElementById("selectedProduct").style.display = "block";
+        document.getElementById("selectedProduct").innerHTML = `
+          <strong>${p.name}</strong><div class="small">₹${p.price} • ${p.category}</div>
+        `;
+      } catch (e) {
+        console.error("Load single product error:", e);
+        document.getElementById("selectedProduct").style.display = "none";
+      }
+    }
+
+    document.getElementById("cancelBtn").addEventListener("click", ()=> window.history.back());
+
+    document.getElementById("checkoutForm").addEventListener("submit", async (ev)=>{
+      ev.preventDefault();
+      const user_id = localStorage.getItem("user_id");
+      if (!user_id) { showToast("Please login first", true); return window.location.href="login.html"; }
+
+      const payload = {
+        user_id: parseInt(user_id),
+        name: document.getElementById("name").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        phone: document.getElementById("phone").value.trim()
+      };
+
+      try {
+        let res, data;
+        if (productId) {
+          // single product checkout -> POST /api/orders (route expects product_id)
+          payload.product_id = parseInt(productId);
+          res = await fetch(`${ORDERS_API}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        } else {
+          // cart checkout -> POST /api/orders/place
+          res = await fetch(`${ORDERS_API}/place`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+        }
+        data = await res.json();
+
+        if (res.ok) {
+          showToast("Order placed successfully!");
+          // after place, go to orders page
+          setTimeout(()=> window.location.href = "orders.html", 900);
+        } else {
+          showToast(data.error || "Failed to place order", true);
+        }
+      } catch (err) {
+        console.error("Place order error:", err);
+        showToast("Server error while placing order", true);
+      }
+    });
+
+    // prefill user profile (if available)
+    document.addEventListener("DOMContentLoaded", async ()=>{
+      const user_id = localStorage.getItem("user_id");
+      if (!user_id) return;
+      try {
+        const r = await fetch(`http://127.0.0.1:5000/api/users/${user_id}`);
+        if (r.ok) {
+          const u = await r.json();
+          document.getElementById("name").value = u.username || "";
+        }
+      } catch (e) { /* ignore */ }
+
+      if (productId) {
+        await loadSingleProductSummary(productId);
+      }
+    });
+  </script>
 </body>
-
-<style>
-body {
-  margin: 0;
-  font-family: Poppins, sans-serif;
-  background: #071021;
-  color: #e6eef8;
-}
-
-.checkout-container {
-  max-width: 1200px;
-  margin: 40px auto;
-  background: linear-gradient(180deg, #081627, #0e2740);
-  border-radius: 12px;
-  padding: 30px;
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
-}
-
-.checkout-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-}
-
-.left, .right {
-  flex: 1 1 400px;
-}
-
-h2, h3 {
-  color: #00b4db;
-  margin-bottom: 10px;
-}
-
-form label {
-  display: block;
-  margin-top: 12px;
-  margin-bottom: 4px;
-  color: #9fb6c7;
-}
-
-input, textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #0b1220;
-  color: #e6eef8;
-  margin-bottom: 10px;
-}
-
-textarea {
-  height: 80px;
-  resize: none;
-}
-
-.place-btn {
-  background: #00e0a8;
-  color: #02121a;
-  border: none;
-  font-weight: 700;
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 10px;
-  cursor: pointer;
-}
-
-.place-btn:hover {
-  background: #00b4db;
-}
-
-#summaryContainer {
-  background: #0b1220;
-  border-radius: 10px;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 8px 0;
-}
-
-.summary-item img {
-  width: 60px;
-  height: 60px;
-  object-fit: contain;
-  background: #0f172a;
-  border-radius: 6px;
-}
-
-.summary-total {
-  margin-top: 12px;
-  font-size: 18px;
-  color: #00e0a8;
-  text-align: right;
-}
-
-@media(max-width:768px){
-  .checkout-grid{flex-direction:column;}
-}
-</style>
 </html>

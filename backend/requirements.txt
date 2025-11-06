@@ -89,3 +89,28 @@ frontend/assets/images/categories/
 
 frontend/assets/images/hero.jpg
 frontend/assets/images/placeholder.png
+
+
+-- SAMPLE DATA
+-- --------------------------------------------------------
+INSERT INTO products (name, description, category, price, image, stock) VALUES
+('onplus 15', 'Processor: Snapdragon 8 Gen 5
+
+
+RAM/Storage: 12GB / 256GB
+
+
+Display: 6.78″ AMOLED 165 Hz
+
+
+Battery: 7300 mAh 120W fast
+
+
+Price: ₹49,999 (expected)
+
+', 'Phones', 49,999, 'oneplus15.jpg', 20);
+('', 'Flagship phone with 200MP camera.', 'Phones', 74999.00, 'samsungS24.jpg', 30),
+('Dell XPS 13', '13-inch lightweight ultrabook laptop.', 'Laptops', 99999.00, 'dellxps13.jpg', 10),
+('Sony WH-1000XM5', 'Noise-cancelling over-ear headphones.', 'Audio', 29999.00, 'sonywh1000xm5.jpg', 15),
+('Apple Watch Series 9', 'Smartwatch with health tracking.', 'Smartwatches', 45999.00, 'applewatch9.jpg', 25),
+('Logitech MX Master 3S', 'Wireless performance mouse.', 'Accessories', 8999.00, 'logitechmx3s.jpg', 40);

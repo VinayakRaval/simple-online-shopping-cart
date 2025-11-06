@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - Shopping Cart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — ShopSmart</title>
+  <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
       font-family: "Poppins", sans-serif;
@@ -22,73 +22,39 @@
       width: 380px;
       text-align: center;
     }
-    .auth-container h2 {
-      margin-bottom: 25px;
-      color: #203a43;
+    .auth-container h2 { margin-bottom: 25px; color: #203a43; }
+    input {
+      width: 100%; padding: 12px; margin: 10px 0;
+      border: 1px solid #ccc; border-radius: 8px; font-size: 15px;
     }
-    .auth-container input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
+    button {
+      width: 100%; padding: 12px; border: none; border-radius: 8px;
+      background: #203a43; color: white; font-size: 16px; cursor: pointer;
     }
-    .auth-container button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #203a43;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .auth-container button:hover {
-      background: #2c5364;
-    }
-    .otp-row {
-      display: flex;
-      gap: 10px;
-    }
-    .auth-container a {
-      display: block;
-      margin-top: 15px;
-      color: #203a43;
-      text-decoration: none;
-    }
-    .password-wrapper {
-      position: relative;
-    }
+    button:hover { background: #2c5364; }
+    .otp-row { display: flex; gap: 10px; }
+    .password-wrapper { position: relative; }
     .eye-icon {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%); cursor: pointer;
     }
-    svg {
-      width: 22px;
-      height: 22px;
-      fill: #000;
-    }
+    svg { width: 22px; height: 22px; fill: #000; }
   </style>
 </head>
 <body>
   <div class="auth-container">
-    <h2>Sign Up</h2>
-    <input type="text" id="fullname" placeholder="Full Name" required>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="text" id="phone" placeholder="Phone Number" required>
+    <h2>Create Account</h2>
+    <input type="text" id="fullname" placeholder="Full Name" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="text" id="phone" placeholder="Phone Number" required />
 
     <div class="otp-row">
-      <input type="text" id="otp" placeholder="Enter OTP">
+      <input type="text" id="otp" placeholder="Enter OTP" />
       <button id="sendOtpBtn" type="button" style="width:40%">Send OTP</button>
     </div>
 
     <div class="password-wrapper">
-      <input type="password" id="password" placeholder="Password" required>
+      <input type="password" id="password" placeholder="Password" required />
       <span class="eye-icon" id="togglePassword">
         <svg viewBox="0 0 24 24">
           <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/>
@@ -99,8 +65,6 @@
     <button id="signupBtn" type="button">Create Account</button>
     <a href="login.html">Already have an account? Login</a>
   </div>
-
-
 
   <script src="js/auth.js"></script>
 </body>

@@ -1,27 +1,19 @@
-<!-- components/header.html -->
+<!-- frontend/components/header.html -->
 <header class="navbar">
   <div class="nav-left">
     <a href="index.html" class="logo">🛒 ShopSmart</a>
-
-    <!-- ✅ Global Search (no button, Enter key only) -->
-   
+  </div>
 
   <div class="nav-right">
+    <a href="index.html" class="nav-item">Home</a>
     <a href="products.html" class="nav-item">Products</a>
-    <a href="cart.html" class="nav-item">
-      🛒 Cart <span id="cartCount" class="cart-count">0</span>
-    </a>
-
-    <!-- ✅ Dynamic User Section -->
-    <div id="userSection" class="nav-item"></div>
+    <a href="cart.html" class="nav-item">🛒 Cart <span id="cartCount" class="cart-count">0</span></a>
+    <a href="orders.html" class="nav-item">My Orders</a>
+    <div id="userSection" class="nav-item user-section"></div>
   </div>
 </header>
 
-<!-- Toast Container -->
-<div id="toast-container"></div>
-
 <style>
-/* ====== Navbar Styling ====== */
 .navbar {
   display: flex;
   align-items: center;
@@ -32,37 +24,13 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 4px 18px rgba(2, 6, 23, 0.6);
+  box-shadow: 0 4px 18px rgba(2,6,23,0.6);
 }
 .logo {
   font-weight: 700;
   color: #00b4db;
   text-decoration: none;
-  font-size: 1.2rem;
-  margin-right: 18px;
-}
-.nav-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: #0b1228;
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-#globalSearch {
-  width: 320px;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: #e6eef8;
-  outline: none;
-  font-size: 0.95rem;
+  font-size: 1.3rem;
 }
 .nav-right {
   display: flex;
@@ -86,167 +54,78 @@
   font-size: 12px;
   margin-left: 6px;
 }
-
-/* ====== Search Suggestions ====== */
-.search-suggestions {
-  position: absolute;
-  top: 44px;
-  left: 0;
-  width: 100%;
-  max-height: 320px;
-  overflow: auto;
-  background: #071427;
-  border-radius: 8px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-  display: none;
-  z-index: 2000;
-}
-.search-suggestions .item {
+.user-section {
   display: flex;
-  gap: 10px;
   align-items: center;
-  padding: 8px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-  cursor: pointer;
-  color: #e6eef8;
+  gap: 10px;
 }
-.search-suggestions .item:hover {
-  background: #081a2a;
-}
-.search-suggestions img {
-  width: 46px;
-  height: 46px;
-  object-fit: cover;
+.user-section button {
+  padding: 6px 10px;
+  border: none;
   border-radius: 6px;
-  background: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
 }
-.search-suggestions .empty {
-  padding: 12px;
-  color: #9fb6c7;
-  text-align: center;
-}
-
-/* ====== Toast ====== */
-#toast-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
-}
-.toast {
+#profileBtn {
   background: #00b4db;
   color: #02121a;
-  padding: 12px 20px;
-  border-radius: 8px;
-  margin-top: 10px;
-  font-weight: 600;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  transform: translateY(20px);
-  animation: slideIn 0.4s forwards;
 }
-@keyframes slideIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+#logoutBtn {
+  background: #ff3b30;
+  color: #fff;
 }
-
-@media (max-width: 820px) {
-  #globalSearch {
-    width: 140px;
-  }
+#loginBtnHeader {
+  background: #00b4db;
+  color: #02121a;
 }
 </style>
 
 <script>
+// ✅ Header runs after injection
 document.addEventListener("DOMContentLoaded", async () => {
   const userId = localStorage.getItem("user_id");
   const userSection = document.getElementById("userSection");
   const cartCountEl = document.getElementById("cartCount");
 
-  // ✅ Toast helper
-  window.showToast = function (msg, isError = false) {
-    const c =
-      document.getElementById("toast-container") ||
-      (() => {
-        const d = document.createElement("div");
-        d.id = "toast-container";
-        document.body.appendChild(d);
-        return d;
-      })();
-
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.style.background = isError ? "#ff4b4b" : "#00b4db";
-    t.style.color = isError ? "#fff" : "#02121a";
-    t.innerText = msg;
-    c.appendChild(t);
-    setTimeout(() => t.remove(), 3000);
-  };
-
-  // ✅ Update Cart Count
   async function updateCartCount() {
+    if (!userId) { cartCountEl.textContent = "0"; return; }
     try {
-      if (!userId) {
-        cartCountEl.textContent = "0";
-        return;
-      }
       const res = await fetch(`http://127.0.0.1:5000/api/cart/${userId}`);
       const items = await res.json();
       const total = Array.isArray(items)
-        ? items.reduce((s, i) => s + (i.quantity || 1), 0)
+        ? items.reduce((sum, i) => sum + (i.quantity || 1), 0)
         : 0;
       cartCountEl.textContent = total;
-    } catch (e) {
+    } catch {
       cartCountEl.textContent = "0";
     }
   }
-  updateCartCount();
-  window.updateCartBadge = updateCartCount;
 
-  // ✅ Global Search (Enter Key Only)
-  const searchInput = document.getElementById("globalSearch");
-
-  if (searchInput) {
-    const doSearch = () => {
-      const query = searchInput.value.trim();
-      if (query.length === 0) {
-        showToast("Please enter a search term", true);
-        return;
-      }
-      window.location.href = `products.html?q=${encodeURIComponent(query)}`;
-    };
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doSearch();
-    });
+  function showLogin() {
+    userSection.innerHTML = `<button id="loginBtnHeader">Login / Signup</button>`;
+    document.getElementById("loginBtnHeader").onclick = () => (window.location.href = "login.html");
   }
 
-  // ✅ User Section
   if (userId) {
     try {
-      const r = await fetch(`http://127.0.0.1:5000/api/users/${userId}`);
-      const user = await r.json();
-      const name = user.username?.split(" ")[0] || "User";
+      const res = await fetch(`http://127.0.0.1:5000/api/users/${userId}`);
+      const user = await res.json();
+      const name = user.username || user.fullname || "User";
       userSection.innerHTML = `
-        <span>👋 Hi, ${name}</span> 
-        <button id="logoutBtn" style="
-          margin-left:12px; background:#ff3b30; border:none; color:#fff;
-          padding:6px 10px; border-radius:6px; cursor:pointer;">Logout</button>`;
-      document.getElementById("logoutBtn").addEventListener("click", () => {
+        <span>👤 Hi, ${name}</span>
+        <button id="profileBtn">Profile</button>
+        <button id="logoutBtn">Logout</button>
+      `;
+      document.getElementById("profileBtn").onclick = () => window.location.href = "profile.html";
+      document.getElementById("logoutBtn").onclick = () => {
         localStorage.removeItem("user_id");
-        showToast("Logged out successfully!");
-        setTimeout(() => (window.location.href = "login.html"), 1000);
-      });
-    } catch (err) {
-      console.error(err);
-      userSection.innerHTML = `<a href="login.html">Login</a> | <a href="signup.html">Create Account</a>`;
-    }
-  } else {
-    userSection.innerHTML = `<a href="login.html">Login</a> | <a href="signup.html">Create Account</a>`;
-  }
+        alert("Logged out successfully!");
+        window.location.href = "login.html";
+      };
+    } catch { showLogin(); }
+  } else { showLogin(); }
+
+  updateCartCount();
+  window.updateCartBadge = updateCartCount;
 });
 </script>
-
-<!-- Attach optional global search logic (for suggestions) -->
-<script src="js/global-search.js"></script>
