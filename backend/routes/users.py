@@ -1,67 +1,125 @@
 from flask import Blueprint, request, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_connection
-import hashlib, random
+import random
+from datetime import datetime, timedelta
 
 users_bp = Blueprint("users", __name__)
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# ---------------- Signup ----------------
+# ---------- SIGNUP ----------
 @users_bp.route("/signup", methods=["POST"])
 def signup():
-    data = request.json
-    full_name = data.get("full_name")
+    data = request.get_json()
+    fullname = data.get("fullname")
     email = data.get("email")
     phone = data.get("phone")
-    password = hash_password(data.get("password"))
+    password = data.get("password")
 
-    conn = get_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT * FROM users WHERE email=%s OR phone=%s", (email, phone))
-        if cur.fetchone():
-            return jsonify({"message": "Email or phone already exists"}), 400
+    if not fullname or not email or not phone or not password:
+        return jsonify({"error": "All fields are required"}), 400
 
-        cur.execute(
-            "INSERT INTO users (full_name, email, phone, password) VALUES (%s, %s, %s, %s)",
-            (full_name, email, phone, password),
-        )
-        conn.commit()
-        return jsonify({"message": "Account created successfully"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    finally:
-        cur.close()
-        conn.close()
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
 
-# ---------------- Login ----------------
+    # Check for existing user
+    cursor.execute("SELECT * FROM users WHERE email=%s OR phone=%s", (email, phone))
+    existing = cursor.fetchone()
+    if existing:
+        db.close()
+        return jsonify({"error": "User already exists"}), 400
+
+    hashed_pw = generate_password_hash(password)
+    cursor.execute(
+        "INSERT INTO users (username, email, phone, password) VALUES (%s, %s, %s, %s)",
+        (fullname, email, phone, hashed_pw),
+    )
+    db.commit()
+    db.close()
+
+    return jsonify({"message": "Signup successful!"}), 200
+
+
+# ---------- LOGIN ----------
 @users_bp.route("/login", methods=["POST"])
 def login():
-    data = request.json
+    data = request.get_json()
     identifier = data.get("identifier")
-    password = hash_password(data.get("password"))
+    password = data.get("password")
 
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "SELECT * FROM users WHERE (email=%s OR phone=%s) AND password=%s",
-        (identifier, identifier, password),
+    if not identifier or not password:
+        return jsonify({"error": "Missing fields"}), 400
+
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    # check by email or phone
+    cursor.execute(
+        "SELECT * FROM users WHERE email=%s OR phone=%s", (identifier, identifier)
     )
-    user = cur.fetchone()
-    cur.close()
-    conn.close()
+    user = cursor.fetchone()
 
-    if user:
-        return jsonify({"message": "Login successful"}), 200
-    else:
-        return jsonify({"message": "Invalid credentials"}), 401
+    if not user:
+        db.close()
+        return jsonify({"error": "User not found"}), 404
 
-# ---------------- Forgot Password (Mock OTP) ----------------
+    if not check_password_hash(user["password"], password):
+        db.close()
+        return jsonify({"error": "Invalid password"}), 401
+
+    db.close()
+    # ✅ Send both user_id and username for localStorage
+    return (
+        jsonify(
+            {
+                "message": f"Welcome {user['username']}!",
+                "user_id": user["id"],
+                "username": user["username"],
+            }
+        ),
+        200,
+    )
+
+
+# ---------- FORGOT PASSWORD ----------
 @users_bp.route("/forgot_password", methods=["POST"])
 def forgot_password():
-    data = request.json
+    data = request.get_json()
     identifier = data.get("identifier")
-    otp = random.randint(100000, 999999)
-    print(f"Mock OTP for {identifier}: {otp}")
-    return jsonify({"message": "Mock OTP generated successfully", "otp": otp}), 200
+    new_password = data.get("new_password")
+
+    if not identifier or not new_password:
+        return jsonify({"error": "Missing fields"}), 400
+
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT * FROM users WHERE email=%s OR phone=%s", (identifier, identifier)
+    )
+    user = cursor.fetchone()
+    if not user:
+        db.close()
+        return jsonify({"error": "User not found"}), 404
+
+    hashed_pw = generate_password_hash(new_password)
+    cursor.execute(
+        "UPDATE users SET password=%s WHERE id=%s", (hashed_pw, user["id"])
+    )
+    db.commit()
+    db.close()
+
+    return jsonify({"message": "Password reset successful!"}), 200
+
+
+# ---------- USER FETCH (for header greeting) ----------
+@users_bp.route("/<int:user_id>", methods=["GET"])
+def get_user(user_id):
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT id, username, email, phone FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
+    db.close()
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify(user)

@@ -1,22 +1,29 @@
+# helper DB functions used by routes
 from database import get_connection
 
 def get_all_products():
     conn = get_connection()
-    products = conn.execute("SELECT * FROM products").fetchall()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products ORDER BY id DESC")
+    rows = cursor.fetchall()
+    cursor.close()
     conn.close()
-    return [dict(p) for p in products]
+    return rows
 
 def get_product_by_id(product_id):
     conn = get_connection()
-    product = conn.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE id=%s", (product_id,))
+    row = cursor.fetchone()
+    cursor.close()
     conn.close()
-    return dict(product) if product else None
+    return row
 
 def add_product(name, price, image, category, description):
     conn = get_connection()
-    conn.execute(
-        "INSERT INTO products (name, price, image, category, description) VALUES (?, ?, ?, ?, ?)",
-        (name, price, image, category, description)
-    )
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO products (name, price, image, category, description) VALUES (%s,%s,%s,%s,%s)",
+                   (name, price, image, category, description))
     conn.commit()
+    cursor.close()
     conn.close()

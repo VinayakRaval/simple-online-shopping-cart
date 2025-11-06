@@ -1,28 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Product Details</title>
-  <style>
-    body{margin:0;font-family:Poppins;background:#0b1220;color:#e6eef8;}
-    .container{max-width:1100px;margin:auto;padding:30px;}
-    .product{display:flex;gap:30px;align-items:center;flex-wrap:wrap;}
-    img{width:340px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
-    .details h2{color:#fff;margin:0 0 10px;}
-    .details p{color:#b6c8d8;}
-    .price{color:#00e0a8;font-size:22px;margin:15px 0;}
-    button{background:#00b4db;color:#02121a;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;}
-  </style>
-</head>
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Product Details</title>
+<link rel="stylesheet" href="css/style.css"></head>
 <body>
   <div id="header-root"></div>
-  <script>fetch("components/header.html").then(r=>r.text()).then(h=>document.getElementById("header-root").innerHTML=h);</script>
+  <script>fetch('components/header.html').then(r=>r.text()).then(h=>document.getElementById('header-root').innerHTML=h);</script>
 
-  <div class="container">
+  <div class="container" style="max-width:1100px;margin:auto;padding:30px;">
     <div id="productDetails" class="product"></div>
   </div>
 
+  <div id="footer-root"></div>
+  <script>fetch('components/footer.html').then(r=>r.text()).then(h=>document.getElementById('footer-root').innerHTML=h);</script>
+
+  <div id="toast-container"></div>
   <script src="js/product-details.js"></script>
 </body>
 </html>

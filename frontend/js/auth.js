@@ -1,129 +1,187 @@
-// ✅ Base API URL
+// ===== API Base =====
 const BASE_URL = "http://127.0.0.1:5000/api/users";
 
-// ======= SEND MOCK OTP =======
-function sendOTP() {
-  const phone = document.getElementById("phone").value;
-  if (!phone) return alert("📱 Please enter your phone number first!");
+// ===== Helper: Toast Notification =====
+function showToast(message, isError = false) {
+  const container =
+    document.getElementById("toast-container") ||
+    (() => {
+      const c = document.createElement("div");
+      c.id = "toast-container";
+      c.style.position = "fixed";
+      c.style.bottom = "20px";
+      c.style.right = "20px";
+      c.style.zIndex = "9999";
+      document.body.appendChild(c);
+      return c;
+    })();
 
-  const otp = Math.floor(100000 + Math.random() * 900000);
-  localStorage.setItem("mockOtp", otp);
-  alert(`📩 Mock OTP sent to ${phone}: ${otp}`);
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.style.background = isError ? "#ff4b4b" : "#00b4db";
+  toast.style.color = isError ? "#fff" : "#02121a";
+  toast.style.padding = "12px 20px";
+  toast.style.borderRadius = "8px";
+  toast.style.marginTop = "10px";
+  toast.style.fontWeight = "600";
+  toast.style.boxShadow = "0 5px 20px rgba(0,0,0,0.4)";
+  toast.innerText = message;
+
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
 }
 
-// ======= SIGNUP =======
-async function signup() {
-  const fullname = document.getElementById("fullname").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const phone = document.getElementById("phone").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const otp = document.getElementById("otp").value.trim();
-  const mockOtp = localStorage.getItem("mockOtp");
-
-  if (!fullname || !email || !phone || !password || !otp)
-    return alert("⚠️ Please fill all fields!");
-
-  if (otp !== mockOtp)
-    return alert("❌ Invalid OTP. Please enter the correct one.");
-
-  if (password.length < 8 || !/\d/.test(password))
-    return alert("🔒 Password must be at least 8 characters and contain 1 number.");
-
-  const res = await fetch(`${BASE_URL}/signup`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fullname, email, phone, password }),
+// ===== MOCK OTP System =====
+const sendOtpBtn = document.getElementById("sendOtpBtn");
+if (sendOtpBtn) {
+  sendOtpBtn.addEventListener("click", () => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    alert(`Mock OTP: ${otp}`);
+    localStorage.setItem("mockOtp", otp);
   });
-
-  const data = await res.json();
-  alert(data.message || data.error);
-
-  if (res.ok) {
-    localStorage.removeItem("mockOtp");
-    window.location.href = "login.html";
-  }
 }
 
-// ======= LOGIN =======
-async function login() {
-  const identifier = document.getElementById("loginInput").value.trim();
-  const password = document.getElementById("loginPassword").value.trim();
+// ===== SIGNUP =====
+const signupBtn = document.getElementById("signupBtn");
+if (signupBtn) {
+  signupBtn.addEventListener("click", async () => {
+    const fullname = document.getElementById("fullname").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const otp = document.getElementById("otp").value.trim();
+    const password = document.getElementById("password").value;
 
-  if (!identifier || !password)
-    return alert("⚠️ Please enter your email/phone and password!");
+    if (!fullname || !email || !phone || !otp || !password) {
+      showToast("Please fill all fields", true);
+      return;
+    }
 
-  const res = await fetch(`${BASE_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ identifier, password }),
+    const mockOtp = localStorage.getItem("mockOtp");
+    if (otp !== mockOtp) {
+      showToast("Invalid OTP. Please enter the correct mock OTP.", true);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullname, email, phone, password }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Signup successful! Please log in.");
+        localStorage.removeItem("mockOtp");
+        setTimeout(() => (window.location.href = "login.html"), 1500);
+      } else {
+        showToast(data.error || "Signup failed", true);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error connecting to server", true);
+    }
   });
-
-  const data = await res.json();
-
-  if (res.ok) {
-    alert(`✅ Welcome back, ${data.username || "User"}!`);
-    localStorage.setItem("user_id", data.user_id);
-    window.location.href = "index.html";
-  } else {
-    alert(data.error || "❌ Invalid login credentials!");
-  }
 }
 
-// ======= FORGOT PASSWORD =======
-function sendForgotOtp() {
-  const email = document.getElementById("forgotEmail").value;
-  if (!email) return alert("📧 Please enter your email first!");
+// ===== LOGIN =====
+const loginBtn = document.getElementById("loginBtn");
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+    const loginInput = document.getElementById("loginInput").value.trim();
+    const password = document.getElementById("loginPassword").value;
 
-  const otp = Math.floor(100000 + Math.random() * 900000);
-  localStorage.setItem("forgotOtp", otp);
-  alert(`📩 Mock OTP sent to ${email}: ${otp}`);
-}
+    if (!loginInput || !password) {
+      showToast("Enter both Email/Phone and Password", true);
+      return;
+    }
 
-async function resetPassword() {
-  const email = document.getElementById("forgotEmail").value.trim();
-  const otp = document.getElementById("forgotOtp").value.trim();
-  const newPassword = document.getElementById("newPassword").value.trim();
-  const mockOtp = localStorage.getItem("forgotOtp");
+    try {
+      const res = await fetch(`${BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: loginInput, password }),
+      });
 
-  if (!email || !otp || !newPassword)
-    return alert("⚠️ Please fill all fields!");
+      const data = await res.json();
 
-  if (otp !== mockOtp)
-    return alert("❌ Invalid OTP entered!");
-
-  const res = await fetch(`${BASE_URL}/forgot_password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, new_password: newPassword }),
+      if (res.ok) {
+        // ✅ Store user_id for cart and session
+        localStorage.setItem("user_id", data.user_id);
+        showToast(`Welcome ${data.username || "User"}!`);
+        setTimeout(() => (window.location.href = "index.html"), 1000);
+      } else {
+        showToast(data.error || "Invalid credentials", true);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Login failed. Check connection.", true);
+    }
   });
-
-  const data = await res.json();
-  alert(data.message || data.error);
-
-  if (res.ok) {
-    localStorage.removeItem("forgotOtp");
-    window.location.href = "login.html";
-  }
 }
 
-// ======= SHOW / HIDE PASSWORD (Eye Icon) =======
+// ===== FORGOT PASSWORD =====
+const sendForgotOtpBtn = document.getElementById("sendForgotOtpBtn");
+if (sendForgotOtpBtn) {
+  sendForgotOtpBtn.addEventListener("click", () => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    alert(`Mock OTP: ${otp}`);
+    localStorage.setItem("forgotOtp", otp);
+  });
+}
+
+const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+if (resetPasswordBtn) {
+  resetPasswordBtn.addEventListener("click", async () => {
+    const email = document.getElementById("forgotEmail").value.trim();
+    const otp = document.getElementById("forgotOtp").value.trim();
+    const newPassword = document.getElementById("newPassword").value;
+    const mockOtp = localStorage.getItem("forgotOtp");
+
+    if (!email || !otp || !newPassword) {
+      showToast("Please fill all fields", true);
+      return;
+    }
+
+    if (otp !== mockOtp) {
+      showToast("Invalid OTP. Please check and try again.", true);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/forgot_password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email, new_password: newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast("Password reset successful! Please log in.");
+        localStorage.removeItem("forgotOtp");
+        setTimeout(() => (window.location.href = "login.html"), 1500);
+      } else {
+        showToast(data.error || "Password reset failed", true);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error resetting password", true);
+    }
+  });
+}
+
+// ===== PASSWORD VISIBILITY TOGGLE =====
 function togglePasswordVisibility(inputId, eyeId) {
   const input = document.getElementById(inputId);
   const eye = document.getElementById(eyeId);
   if (!input || !eye) return;
 
   eye.addEventListener("click", () => {
-    const isPassword = input.type === "password";
-    input.type = isPassword ? "text" : "password";
-    eye.innerHTML = isPassword
-      ? `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="#000"><path d="M10 4C5 4 1 10 1 10s4 6 9 6 9-6 9-6-4-6-9-6Zm0 9a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`
-      : `<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" fill="#000"><path d="M10 4C5 4 1 10 1 10s4 6 9 6 9-6 9-6-4-6-9-6Zm0 9a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/></svg>`;
+    input.type = input.type === "password" ? "text" : "password";
   });
 }
 
-// Initialize password toggle
-document.addEventListener("DOMContentLoaded", () => {
-  togglePasswordVisibility("password", "togglePassword");
-  togglePasswordVisibility("loginPassword", "toggleLoginPassword");
-  togglePasswordVisibility("newPassword", "toggleForgotPassword");
-});
+togglePasswordVisibility("password", "togglePassword");
+togglePasswordVisibility("loginPassword", "toggleLoginPassword");
+togglePasswordVisibility("newPassword", "toggleForgotPassword");

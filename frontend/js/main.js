@@ -1,70 +1,66 @@
+/* =========================================================
+   🛒 ShopSmart — Homepage Script (main.js)
+   ========================================================= */
+
 const API = "http://127.0.0.1:5000/api";
 const user_id = localStorage.getItem("user_id") || 1;
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadCategories();
-  loadFeaturedProducts();
+// 🔹 Build "Shop by Category" grid with image fallback
+document.addEventListener("DOMContentLoaded", async () => {
+  const cats = ["Phones", "Laptops", "Smartwatches", "Audio", "Accessories"];
+  const catGrid = document.getElementById("categoryGrid");
+
+  if (catGrid) {
+    catGrid.innerHTML = cats
+      .map((c) => {
+        const file = `assets/images/categories/cat-${c.toLowerCase()}.jpg`;
+        return `
+          <div class="cat-card" onclick="location.href='products.html?category=${encodeURIComponent(c)}'">
+            <img src="${file}" alt="${c}" onerror="this.onerror=null;this.src='assets/images/placeholder.png'">
+            <div class="cat-label">${c}</div>
+          </div>`;
+      })
+      .join("");
+  }
+
+  // 🔹 Load Featured Products
+  const featuredGrid = document.getElementById("featuredGrid");
+  if (featuredGrid) {
+    try {
+      let sort = localStorage.getItem("home_sort") || "";
+      const res = await fetch(`${API}/products/?sort=${encodeURIComponent(sort)}`);
+      let products = await res.json();
+
+      // Show first 9 featured products (3 rows)
+      products = products.slice(0, 9);
+
+      featuredGrid.innerHTML = products
+        .map(
+          (p) => `
+          <div class="product-card">
+            <img src="assets/images/${p.image}" alt="${p.name}" onerror="this.onerror=null;this.src='assets/images/placeholder.png'">
+            <div class="p-title">${p.name}</div>
+            <div class="p-price">₹${p.price}</div>
+            <div class="p-actions">
+              <button class="btn add" onclick="addToCart(${p.id})">Add to Cart</button>
+              <button class="btn view" onclick="viewProduct(${p.id})">View</button>
+            </div>
+          </div>`
+        )
+        .join("");
+    } catch (err) {
+      console.error("Failed to load featured products:", err);
+      featuredGrid.innerHTML = `<p style="color:#f66;">Error loading featured products.</p>`;
+    }
+  }
 });
 
-// 🏷️ Shop by Category (Dynamic)
-function loadCategories() {
-  const categories = [
-    { name: "Phones", image: "cat-phones.jpg" },
-    { name: "Laptops", image: "cat-laptops.jpg" },
-    { name: "Accessories", image: "cat-accessories.jpg" },
-    { name: "Smartwatches", image: "cat-watches.jpg" },
-    { name: "Headphones", image: "cat-headphones.jpg" },
-  ];
-
-  const container = document.getElementById("categoryGrid");
-  container.innerHTML = categories
-    .map(
-      (c) => `
-      <div class="cat-card" onclick="filterByCategory('${c.name}')">
-        <img src="assets/images/${c.image}" alt="${c.name}">
-        <h4>${c.name}</h4>
-      </div>
-    `
-    )
-    .join("");
+// 🔹 Redirect to product details page
+function viewProduct(id) {
+  window.location.href = `product-details.html?id=${id}`;
 }
 
-function filterByCategory(cat) {
-  window.location.href = `products.html?category=${encodeURIComponent(cat)}`;
-}
-
-// 🛍️ Featured Products
-async function loadFeaturedProducts() {
-  const grid = document.getElementById("featuredGrid");
-  grid.innerHTML = "<p>Loading featured items...</p>";
-
-  try {
-    const res = await fetch(`${API}/products/`);
-    const products = await res.json();
-    const featured = products.slice(0, 12);
-
-    grid.innerHTML = featured
-      .map(
-        (p) => `
-      <div class="product-card">
-        <img src="assets/images/${p.image}" alt="${p.name}">
-        <h4 class="p-title">${p.name}</h4>
-        <div class="p-price">₹${p.price}</div>
-        <div class="p-actions">
-          <button class="add" onclick="addToCart(${p.id})">Add</button>
-          <button class="view" onclick="viewProduct(${p.id})">View</button>
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  } catch (err) {
-    console.error("Error loading featured:", err);
-    grid.innerHTML = "<p>Failed to load featured products.</p>";
-  }
-}
-
-// 🛒 Add to Cart with Toast + Count Update
+// 🔹 Add to Cart function with toast and live badge update
 async function addToCart(product_id) {
   try {
     const res = await fetch(`${API}/cart/add`, {
@@ -72,44 +68,17 @@ async function addToCart(product_id) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id, product_id, quantity: 1 }),
     });
+
     const data = await res.json();
 
     if (res.ok) {
-      showToast("✅ Added to cart!");
-      updateCartCount();
+      showToast("Item added to cart ✅");
+      window.updateCartBadge && window.updateCartBadge();
     } else {
-      showToast("⚠️ " + data.error, true);
+      showToast(data.error || "Failed to add item", true);
     }
-  } catch (err) {
-    console.error(err);
-    showToast("❌ Failed to add to cart", true);
+  } catch (e) {
+    console.error(e);
+    showToast("Add to cart failed", true);
   }
-}
-
-// 🔔 Toast Notification
-function showToast(message, isError = false) {
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.style.background = isError ? "#ff4b4b" : "#00b4db";
-  toast.innerText = message;
-  document.getElementById("toast-container").appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
-
-// 🧮 Update Cart Count
-async function updateCartCount() {
-  try {
-    const res = await fetch(`${API}/cart/${user_id}`);
-    const items = await res.json();
-    const total = items.reduce((sum, i) => sum + i.quantity, 0);
-    document.getElementById("cartCount").innerText = total;
-    document.getElementById("floatCount").innerText = total;
-  } catch {
-    document.getElementById("cartCount").innerText = "0";
-  }
-}
-
-// 👁️ View Product
-function viewProduct(id) {
-  window.location.href = `product-details.html?id=${id}`;
 }

@@ -1,162 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Products | ShopSmart</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products — ShopSmart</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
+
 <body>
+  <!-- ✅ Header -->
   <div id="header-root"></div>
   <script>
     fetch("components/header.html")
       .then(r => r.text())
-      .then(h => document.getElementById("header-root").innerHTML = h);
+      .then(h => (document.getElementById("header-root").innerHTML = h));
   </script>
 
-  <!-- 🔍 Search + Sort Bar -->
-  <section class="product-filter">
-    <input id="searchInput" type="text" placeholder="Search products..." />
-    <button id="searchBtn">Search</button>
-    <select id="sortSelect">
-      <option value="newest">Sort: Newest</option>
-      <option value="low">Price: Low → High</option>
-      <option value="high">Price: High → Low</option>
-    </select>
+  <!-- ✅ Product Section -->
+  <section class="product-page" style="padding: 30px 6%;">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+        <h2 id="pageTitle" style="color:#00b4db;">All Products</h2>
+      </div>
+
+      <!-- 🛍️ Product Grid -->
+      <div id="productGrid" class="product-grid" style="max-width:1200px;margin:20px auto;padding:20px;">
+        <!-- products load dynamically -->
+      </div>
+
+      <!-- 🔘 Load More Button -->
+      <div style="text-align:center; margin: 25px 0;">
+        <button id="loadMoreBtn" class="btn add">Load More</button>
+      </div>
+    </div>
   </section>
 
-  <!-- 🛍️ Product Grid -->
-  <section class="container">
-    <h2 id="pageTitle">All Products</h2>
-    <div id="productGrid" class="product-grid"></div>
-  </section>
+  <!-- ✅ Footer -->
+  <div id="footer-root"></div>
+  <script>
+    fetch("components/footer.html")
+      .then(r => r.text())
+      .then(h => (document.getElementById("footer-root").innerHTML = h));
+  </script>
 
+  <!-- ✅ Toast Container -->
   <div id="toast-container"></div>
 
+  <!-- ✅ JS -->
   <script src="js/products.js"></script>
 </body>
-
-<style>
-body {
-  margin: 0;
-  font-family: "Poppins", sans-serif;
-  background: #0b1220;
-  color: #e6eef8;
-}
-
-/* 🔍 Filter Section */
-.product-filter {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  background: #0f172a;
-  padding: 15px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  position: sticky;
-  top: 70px;
-  z-index: 900;
-}
-.product-filter input {
-  padding: 10px;
-  width: 300px;
-  border: none;
-  border-radius: 6px;
-  background: #1b2735;
-  color: #fff;
-  outline: none;
-}
-.product-filter button {
-  padding: 10px 16px;
-  background: #00b4db;
-  border: none;
-  color: #02121a;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.product-filter button:hover {
-  background: #00e0a8;
-}
-.product-filter select {
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  background: #1b2735;
-  color: #e6eef8;
-}
-
-/* 🧱 Product Grid */
-.container {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 20px;
-}
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 18px;
-  justify-items: center;
-}
-.product-card {
-  background: linear-gradient(180deg, #071827, #0a2235);
-  border-radius: 12px;
-  padding: 12px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;
-  width: 100%;
-  max-width: 220px;
-}
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-}
-.product-card img {
-  width: 100%;
-  height: 160px;
-  object-fit: contain;
-  background: #0f172a;
-  border-radius: 8px;
-  padding: 8px;
-}
-.p-title {
-  font-size: 15px;
-  color: #fff;
-  margin: 8px 0 4px;
-}
-.p-price {
-  color: #00e0a8;
-  font-weight: 600;
-  font-size: 16px;
-}
-.p-actions {
-  margin-top: 8px;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-.btn {
-  padding: 7px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-}
-.add {
-  background: #00b4db;
-  color: #02121a;
-}
-.add:hover {
-  background: #00e0a8;
-}
-.view {
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #e6eef8;
-}
-.view:hover {
-  border-color: #00b4db;
-  color: #00e0a8;
-}
-</style>
 </html>

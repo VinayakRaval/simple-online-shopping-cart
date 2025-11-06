@@ -39,3 +39,52 @@ VALUES
 ('HP Laptop', 55999, 'hp-laptop.jpg', 'Laptops', 'Core i5 12th Gen, 8GB RAM, 512GB SSD'),
 ('Sony Headphones', 4999, 'sony-headphones.jpg', 'Accessories', 'Noise cancelling headphones'),
 ('Samsung Galaxy S23', 84999, 's23.jpg', 'Phones', '8GB RAM, 256GB Storage, Snapdragon 8 Gen 2');
+
+INSERT INTO products (name, price, image, category, description)
+VALUES
+('Apple watch 9', 35000, 'apple_watch_9.jpg', 'Smartwatches', 'Apple S8 SiP, 45mm Case');
+
+frontend/assets/images/phones/
+  iphone_14_pro.jpg
+  samsung_s24_ultra.jpg
+  oneplus_12.jpg
+  vivo_v30.jpg
+  oppo_reno11.jpg
+
+frontend/assets/images/laptops/
+  macbook_air_m2.jpg
+  dell_xps_15.jpg
+  hp_spectre_x360.jpg
+  lenovo_legion_7.jpg
+  asus_tuf_gaming.jpg
+
+frontend/assets/images/smartwatches/
+  apple_watch_9.jpg
+  galaxy_watch_6.jpg
+  fireboltt_invincible.jpg
+  noisefit_fuse_plus.jpg
+  boat_wave_edge.jpg
+
+frontend/assets/images/audio/
+  sony_wh1000xm5.jpg
+  boat_airdopes_141.jpg
+  jbl_flip_6.jpg
+  realme_buds_air5.jpg
+  apple_airpods_pro.jpg
+
+frontend/assets/images/accessories/
+  logitech_mouse.jpg
+  hp_keyboard.jpg
+  sandisk_64gb.jpg
+  mi_powerbank.jpg
+  usb_c_hub.jpg
+
+frontend/assets/images/categories/
+  cat-phones.jpg
+  cat-laptops.jpg
+  cat-smartwatches.jpg
+  cat-audio.jpg
+  cat-accessories.jpg
+
+frontend/assets/images/hero.jpg
+frontend/assets/images/placeholder.png

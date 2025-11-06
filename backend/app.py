@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from database import init_db
 from routes.products import products_bp
@@ -10,7 +10,7 @@ from routes.otp import otp_bp
 app = Flask(__name__)
 CORS(app)
 
-# Initialize Database
+# Initialize DB (create tables if not exist)
 init_db()
 
 # Register Blueprints
@@ -20,9 +20,9 @@ app.register_blueprint(cart_bp, url_prefix="/api/cart")
 app.register_blueprint(orders_bp, url_prefix="/api/orders")
 app.register_blueprint(otp_bp, url_prefix="/api/otp")
 
-@app.route('/')
+@app.route("/")
 def home():
-    return {"message": "Simple Online Shopping Cart API is running"}
+    return jsonify({"message": "Simple Online Shopping Cart API is running"})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)

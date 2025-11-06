@@ -1,48 +1,50 @@
 from flask import Blueprint, request, jsonify
-import random
-import requests
+from database import get_connection
+import random, string
+from datetime import datetime, timedelta
 
-otp_bp = Blueprint('otp', __name__)
+otp_bp = Blueprint("otp", __name__)
 
-# Temporary storage for OTPs (in real apps use DB)
-otp_storage = {}
+def generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
 
-# === CONFIG ===
-FAST2SMS_API_KEY = "Tgpus06jDfMVHkwGLAZhlYKdvyqxFto4CnJNE2bI8S3Q1Bi5mWxTRpZfHInWLuVGah1JEjb5K3oNeCDX"
-
-@otp_bp.route('/send-otp', methods=['POST'])
+@otp_bp.route("/send", methods=["POST"])
 def send_otp():
-    data = request.get_json()
-    phone = data.get('phone')
+    try:
+        data = request.get_json() or {}
+        phone = data.get("phone")
+        if not phone:
+            return jsonify({"error": "Phone number is required"}), 400
 
-    if not phone:
-        return jsonify({"error": "Phone number required"}), 400
+        otp = generate_otp()
+        expiry = datetime.now() + timedelta(minutes=10)
 
-    otp = random.randint(100000, 999999)
-    otp_storage[phone] = otp
+        conn = get_connection()
+        cursor = conn.cursor()
 
-    # Send OTP using Fast2SMS API
-    url = "https://www.fast2sms.com/dev/bulkV2"
-    payload = {
-        'authorization': FAST2SMS_API_KEY,
-        'variables_values': str(otp),
-        'route': 'otp',
-        'numbers': phone
-    }
-    headers = {'cache-control': "no-cache"}
+        # ✅ Insert new user if not found
+        cursor.execute("SELECT id FROM users WHERE phone=%s", (phone,))
+        user = cursor.fetchone()
+        if not user:
+            cursor.execute(
+                "INSERT INTO users (phone, otp_code, otp_expiry) VALUES (%s, %s, %s)",
+                (phone, otp, expiry)
+            )
+        else:
+            cursor.execute(
+                "UPDATE users SET otp_code=%s, otp_expiry=%s WHERE phone=%s",
+                (otp, expiry, phone)
+            )
 
-    response = requests.post(url, data=payload, headers=headers)
-    return jsonify({"message": "OTP sent successfully!"})
+        conn.commit()
+        cursor.close()
+        conn.close()
 
+        return jsonify({
+            "message": f"OTP sent successfully to {phone} (mock)",
+            "otp": otp
+        }), 200
 
-@otp_bp.route('/verify-otp', methods=['POST'])
-def verify_otp():
-    data = request.get_json()
-    phone = data.get('phone')
-    user_otp = data.get('otp')
-
-    if otp_storage.get(phone) == int(user_otp):
-        del otp_storage[phone]
-        return jsonify({"message": "OTP verified successfully!"})
-    else:
-        return jsonify({"error": "Invalid OTP"}), 400
+    except Exception as e:
+        print("Error sending OTP:", e)
+        return jsonify({"error": "Internal server error"}), 500
