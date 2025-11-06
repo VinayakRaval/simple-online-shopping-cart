@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>My Profile — ShopSmart</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="header-root"></div>
+  <script>
+    fetch("components/header.html")
+      .then(r => r.text())
+      .then(h => document.getElementById("header-root").innerHTML = h);
+  </script>
+
+  <section class="profile-container">
+    <h2>My Profile</h2>
+    <div id="profileBox" class="profile-box">
+      <p>Loading profile...</p>
+    </div>
+  </section>
+
+  <div id="footer-root"></div>
+  <script>
+    fetch("components/footer.html")
+      .then(r => r.text())
+      .then(h => document.getElementById("footer-root").innerHTML = h);
+  </script>
+
+  <div id="toast-container"></div>
+  <script src="js/profile.js"></script>
+</body>
+
+<style>
+body {
+  margin: 0;
+  font-family: Poppins, sans-serif;
+  background: #071021;
+  color: #e6eef8;
+}
+.profile-container {
+  max-width: 800px;
+  margin: 40px auto;
+  background: linear-gradient(180deg, #081627, #0e2740);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+}
+.profile-box {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #0b1220;
+  padding: 12px 15px;
+  border-radius: 8px;
+}
+.profile-field label {
+  color: #9fb6c7;
+}
+.profile-field input {
+  background: none;
+  border: none;
+  color: #e6eef8;
+  font-size: 15px;
+  outline: none;
+  text-align: right;
+}
+.profile-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.save {
+  background: #00e0a8;
+  color: #02121a;
+}
+.logout {
+  background: #ff3b30;
+  color: #fff;
+}
+h2 {
+  color: #00b4db;
+  margin-bottom: 20px;
+  text-align: center;
+}
+</style>
+</html>

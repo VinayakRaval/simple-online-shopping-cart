@@ -1,42 +1,50 @@
-const API = "http://127.0.0.1:5000";
-document.addEventListener("DOMContentLoaded", loadOrders);
+const API = "http://127.0.0.1:5000/api";
+const user_id = parseInt(localStorage.getItem("user_id"));
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!user_id) {
+    alert("Please log in to view your orders.");
+    window.location.href = "login.html";
+    return;
+  }
+  loadOrders();
+});
 
 async function loadOrders() {
   const container = document.getElementById("ordersContainer");
-  const user_id = localStorage.getItem("user_id") || 1;
-  container.innerHTML = "<p>Loading...</p>";
+  container.innerHTML = "<p>Loading orders...</p>";
 
   try {
-    const res = await fetch(`${API}/api/orders/user/${user_id}`);
+    const res = await fetch(`${API}/orders/${user_id}`);
     const orders = await res.json();
 
-    if (!Array.isArray(orders) || orders.length === 0) {
-      container.innerHTML = "<p>No orders found.</p>";
+    if (!orders.length) {
+      container.innerHTML = "<p>No orders found 🛍️</p>";
       return;
     }
 
-    container.innerHTML = "";
-    orders.forEach(order => {
-      const div = document.createElement("div");
-      div.className = "order";
-      div.innerHTML = `
+    container.innerHTML = orders.map(o => `
+      <div class="order-card">
         <div class="order-header">
-          <span class="order-id">Order #${order.order_id}</span>
-          <span class="price">Total: ₹${order.total_amount}</span>
+          <h3>Order #${o.order_id}</h3>
+          <span class="status">${o.status}</span>
         </div>
-        <div>Date: ${new Date(order.date).toLocaleString()}</div>
+        <p><strong>Date:</strong> ${new Date(o.date).toLocaleString()}</p>
+        <p><strong>Total:</strong> ₹${o.total_price}</p>
         <div class="order-items">
-          ${order.items.map(i => `
+          ${o.items.map(i => `
             <div class="item">
-              <strong>${i.name}</strong><br>
-              Qty: ${i.quantity} × ₹${i.price}<br>
-              <span class="price">Subtotal: ₹${(i.quantity * i.price).toFixed(2)}</span>
+              <img src="assets/images/${i.image}" alt="${i.name}" 
+                   onerror="this.src='assets/images/placeholder.png'">
+              <div>
+                <h4>${i.name}</h4>
+                <p>₹${i.price} × ${i.quantity}</p>
+              </div>
             </div>
-          `).join('')}
+          `).join("")}
         </div>
-      `;
-      container.appendChild(div);
-    });
+      </div>
+    `).join("");
   } catch (err) {
     console.error(err);
     container.innerHTML = "<p>Failed to load orders.</p>";

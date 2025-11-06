@@ -42,7 +42,8 @@ VALUES
 
 INSERT INTO products (name, price, image, category, description)
 VALUES
-('Apple watch 9', 35000, 'apple_watch_9.jpg', 'Smartwatches', 'Apple S8 SiP, 45mm Case');
+('formal Dress Mens', 900, 'formaldressmens.jpg', 'Dresess', 'solid cloths'),
+('girls Dress ', 1000, 'girlsdress.jpg', 'Dresess', 'solid cloths');
 
 frontend/assets/images/phones/
   iphone_14_pro.jpg

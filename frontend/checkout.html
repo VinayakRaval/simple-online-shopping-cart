@@ -1,34 +1,164 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout</title>
-<link rel="stylesheet" href="css/style.css"></head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Checkout — ShopSmart</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
 <body>
   <div id="header-root"></div>
-  <script>fetch('components/header.html').then(r=>r.text()).then(h=>document.getElementById('header-root').innerHTML=h);</script>
+  <script>
+    fetch("components/header.html")
+      .then(r=>r.text())
+      .then(h=>document.getElementById("header-root").innerHTML=h);
+  </script>
 
-  <main class="checkout-page">
-    <div class="checkout-container" style="max-width:900px;margin:40px auto">
-      <h2 style="color:#2874f0">Checkout</h2>
-      <div class="address-section">
-        <h3>Shipping Address</h3>
-        <input id="checkoutName" placeholder="Full name" />
-        <input id="checkoutPhone" placeholder="Phone" />
-        <input id="checkoutEmail" placeholder="Email" />
-        <textarea id="checkoutAddress" rows="4" placeholder="Address"></textarea>
+  <section class="checkout-container">
+    <h2>Checkout</h2>
+    <div class="checkout-grid">
+      <div class="left">
+        <h3>Shipping Details</h3>
+        <form id="checkoutForm">
+          <label>Full Name</label>
+          <input type="text" id="name" placeholder="Enter your name" required>
+
+          <label>Email</label>
+          <input type="email" id="email" placeholder="example@mail.com" required>
+
+          <label>Phone</label>
+          <input type="text" id="phone" placeholder="10-digit number" required>
+
+          <label>Address</label>
+          <textarea id="address" placeholder="Full delivery address" required></textarea>
+
+          <button type="submit" class="btn place-btn">Place Order</button>
+        </form>
       </div>
-      <div class="order-summary">
+
+      <div class="right">
         <h3>Order Summary</h3>
-        <div id="summary-items"></div>
-        <p class="total">Total: ₹<span id="total-price">0</span></p>
+        <div id="summaryContainer">Loading...</div>
+        <div class="summary-total">
+          <strong>Total:</strong> ₹<span id="summaryTotal">0</span>
+        </div>
       </div>
-      <button id="place-order" class="btn-primary">Place Order</button>
     </div>
-  </main>
+  </section>
 
   <div id="footer-root"></div>
-  <script>fetch('components/footer.html').then(r=>r.text()).then(h=>document.getElementById('footer-root').innerHTML=h);</script>
+  <script>
+    fetch("components/footer.html")
+      .then(r=>r.text())
+      .then(h=>document.getElementById("footer-root").innerHTML=h);
+  </script>
 
   <div id="toast-container"></div>
   <script src="js/checkout.js"></script>
 </body>
+
+<style>
+body {
+  margin: 0;
+  font-family: Poppins, sans-serif;
+  background: #071021;
+  color: #e6eef8;
+}
+
+.checkout-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  background: linear-gradient(180deg, #081627, #0e2740);
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+}
+
+.checkout-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.left, .right {
+  flex: 1 1 400px;
+}
+
+h2, h3 {
+  color: #00b4db;
+  margin-bottom: 10px;
+}
+
+form label {
+  display: block;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  color: #9fb6c7;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: #0b1220;
+  color: #e6eef8;
+  margin-bottom: 10px;
+}
+
+textarea {
+  height: 80px;
+  resize: none;
+}
+
+.place-btn {
+  background: #00e0a8;
+  color: #02121a;
+  border: none;
+  font-weight: 700;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.place-btn:hover {
+  background: #00b4db;
+}
+
+#summaryContainer {
+  background: #0b1220;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 8px 0;
+}
+
+.summary-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  background: #0f172a;
+  border-radius: 6px;
+}
+
+.summary-total {
+  margin-top: 12px;
+  font-size: 18px;
+  color: #00e0a8;
+  text-align: right;
+}
+
+@media(max-width:768px){
+  .checkout-grid{flex-direction:column;}
+}
+</style>
 </html>

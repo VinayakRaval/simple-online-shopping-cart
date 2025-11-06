@@ -1,175 +1,200 @@
-// frontend/js/products.js
+// ============================
+// Products Page Script
+// ============================
 const API = "http://127.0.0.1:5000/api";
-const user_id = parseInt(localStorage.getItem("user_id")) || 1;
+let allProducts = [];
+let displayed = 0;
+const PAGE_SIZE = 12;
 
-let allProducts = [];     // cached products
-let pageSize = 12;        // how many per "page"
-let pageIndex = 0;        // current page (0-based)
+// ============================
+// INITIALIZATION
+// ============================
+document.addEventListener("DOMContentLoaded", () => {
+  const searchBtn = document.getElementById("searchBtn");
+  const sortSelect = document.getElementById("sortSelect");
+  const searchInput = document.getElementById("filterSearch");
+  const loadMoreBtn = document.getElementById("loadMoreBtn");
 
-// utility: show toast
-function showToast(message, isError = false) {
-  const container = document.getElementById("toast-container") || (() => {
-    const c = document.createElement("div"); c.id = "toast-container"; document.body.appendChild(c); return c;
-  })();
+  if (searchBtn) searchBtn.addEventListener("click", handleSearch);
+  if (sortSelect) sortSelect.addEventListener("change", () => loadProducts());
+  if (searchInput)
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") handleSearch();
+    });
+  if (loadMoreBtn) loadMoreBtn.addEventListener("click", loadMore);
 
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.style.background = isError ? "#ff4b4b" : "#00b4db";
-  toast.style.color = isError ? "#fff" : "#02121a";
-  toast.style.padding = "10px 14px";
-  toast.style.borderRadius = "8px";
-  toast.style.marginTop = "8px";
-  toast.style.fontWeight = "600";
-  toast.innerText = message;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("q");
+  const category = params.get("category");
 
-// update cart badge (header)
-async function updateCartBadge() {
-  try {
-    const res = await fetch(`${API}/cart/${user_id}`);
-    if (!res.ok) throw new Error(`Status ${res.status}`);
-    const items = await res.json();
-    const total = items.reduce((s, it) => s + (it.quantity || 0), 0);
-    const cartCountEl = document.getElementById("cartCount");
-    const floatCountEl = document.getElementById("floatCount");
-    if (cartCountEl) cartCountEl.innerText = total;
-    if (floatCountEl) floatCountEl.innerText = total;
-  } catch (err) {
-    console.warn("updateCartBadge failed:", err);
-    const cartCountEl = document.getElementById("cartCount");
-    if (cartCountEl) cartCountEl.innerText = "0";
+  loadProducts(query, category);
+});
+
+// ============================
+// HANDLE SEARCH
+// ============================
+function handleSearch() {
+  const searchVal = document.getElementById("filterSearch").value.trim();
+  if (searchVal) {
+    // ✅ Redirect to same page with new query param
+    window.location.href = `products.html?q=${encodeURIComponent(searchVal)}`;
+  } else {
+    loadProducts();
   }
 }
 
-// add to cart (used by both pages)
-async function addToCart(product_id) {
-  const user_id = parseInt(localStorage.getItem("user_id"));
-  if (!user_id) {
-    alert("Please log in to add items to cart.");
+// ============================
+// LOAD PRODUCTS FUNCTION
+// ============================
+async function loadProducts(query = null, category = null) {
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "<p>Loading products...</p>";
+
+  try {
+    const res = await fetch(`${API}/products/`);
+    allProducts = await res.json();
+
+    if (!Array.isArray(allProducts)) {
+      grid.innerHTML = "<p style='color:red;'>Error: Invalid data.</p>";
+      return;
+    }
+
+    // Normalize data for comparison (fixes 'Samsung' vs 'samsung')
+    allProducts = allProducts.map((p) => ({
+      ...p,
+      name: (p.name || "").toLowerCase(),
+      description: (p.description || "").toLowerCase(),
+      category: (p.category || "").toLowerCase(),
+    }));
+
+    // 🔹 Category Filter
+    if (category) {
+      const cat = category.toLowerCase();
+      allProducts = allProducts.filter((p) => p.category === cat);
+      document.getElementById("pageTitle").textContent =
+        category.charAt(0).toUpperCase() + category.slice(1) + " Products";
+    }
+
+    // 🔹 Search Filter (handles lowercase, plural forms, extra spaces)
+    const searchTerm =
+      (query || document.getElementById("filterSearch").value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/s$/, ""); // allow plural search (samsung → samsung)
+
+    if (searchTerm) {
+      allProducts = allProducts.filter(
+        (p) =>
+          p.name.includes(searchTerm) ||
+          p.description.includes(searchTerm) ||
+          p.category.includes(searchTerm)
+      );
+      document.getElementById(
+        "pageTitle"
+      ).textContent = `Search: "${searchTerm}"`;
+    }
+
+    // 🔹 Sort
+    const sort = document.getElementById("sortSelect").value;
+    if (sort === "price_asc") allProducts.sort((a, b) => a.price - b.price);
+    if (sort === "price_desc") allProducts.sort((a, b) => b.price - a.price);
+    if (sort === "newest")
+      allProducts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Reset display
+    displayed = 0;
+    grid.innerHTML = "";
+    loadMore();
+  } catch (e) {
+    console.error("Product Load Error:", e);
+    grid.innerHTML =
+      "<p style='color:red;'>⚠️ Failed to load products. Check server.</p>";
+  }
+}
+
+// ============================
+// LOAD MORE BUTTON
+// ============================
+function loadMore() {
+  const grid = document.getElementById("productGrid");
+  const slice = allProducts.slice(displayed, displayed + PAGE_SIZE);
+
+  if (slice.length === 0 && displayed === 0) {
+    grid.innerHTML = "<p style='color:#9fb6c7;'>No products found.</p>";
+    document.getElementById("loadMoreBtn").style.display = "none";
+    return;
+  }
+
+  grid.insertAdjacentHTML(
+    "beforeend",
+    slice
+      .map(
+        (p) => `
+      <div class="product-card">
+        <img 
+          src="assets/images/${p.category}/${p.image}" 
+          onerror="this.src='assets/images/placeholder.png'" 
+          alt="${p.name}" 
+        />
+        <h4 class="p-title">${capitalize(p.name)}</h4>
+        <div class="p-price">₹${p.price}</div>
+        <div class="p-actions">
+          <button class="btn add" onclick="addToCart(${p.id})">Add to Cart</button>
+          <button class="btn view" onclick="viewProduct(${p.id})">View</button>
+        </div>
+      </div>`
+      )
+      .join("")
+  );
+
+  displayed += slice.length;
+  document.getElementById("loadMoreBtn").style.display =
+    displayed < allProducts.length ? "inline-block" : "none";
+}
+
+// ============================
+// ADD TO CART
+// ============================
+async function addToCart(productId) {
+  const userId = parseInt(localStorage.getItem("user_id"));
+  if (!userId) {
+    showToast("Please log in first!", true);
     window.location.href = "login.html";
     return;
   }
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/cart/add", {
+    const res = await fetch(`${API}/cart/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id, product_id, quantity: 1 }),
+      body: JSON.stringify({
+        user_id: userId,
+        product_id: productId,
+        quantity: 1,
+      }),
     });
     const data = await res.json();
 
     if (res.ok) {
       showToast("✅ Item added to cart!");
-      if (window.updateCartBadge) window.updateCartBadge();
-    } else {
-      showToast("⚠️ " + (data.error || "Failed to add item"), true);
-    }
+      window.updateCartBadge && window.updateCartBadge();
+    } else showToast(data.error || "Failed to add to cart", true);
   } catch (err) {
     console.error(err);
-    showToast("❌ Could not add to cart", true);
+    showToast("Server error while adding to cart", true);
   }
 }
 
-// view product details
+// ============================
+// VIEW PRODUCT
+// ============================
 function viewProduct(id) {
   window.location.href = `product-details.html?id=${id}`;
 }
 
-// render a slice of products
-function renderProductsChunk(startIndex = 0) {
-  const container = document.getElementById("productGrid");
-  if (!container) return;
-
-  const slice = allProducts.slice(startIndex, startIndex + pageSize);
-  if (startIndex === 0) container.innerHTML = ""; // first render clears
-
-  slice.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="assets/images/${p.image || 'placeholder.png'}" alt="${p.name}" onerror="this.onerror=null;this.src='assets/images/placeholder.png'">
-      <h4 class="p-title">${p.name}</h4>
-      <div class="p-price">₹${parseFloat(p.price).toFixed(2)}</div>
-      <div class="p-actions">
-        <button class="btn add" data-id="${p.id}">Add to Cart</button>
-        <button class="btn view" data-id="${p.id}">View</button>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-
-  // attach handlers for the newly added buttons
-  container.querySelectorAll(".p-actions .add").forEach(btn => {
-    btn.addEventListener("click", () => addToCart(parseInt(btn.dataset.id)));
-  });
-  container.querySelectorAll(".p-actions .view").forEach(btn => {
-    btn.addEventListener("click", () => viewProduct(parseInt(btn.dataset.id)));
-  });
-
-  // toggle Load More visibility
-  const loadMoreBtn = document.getElementById("loadMoreBtn");
-  if (!loadMoreBtn) return;
-  const nextIndex = startIndex + pageSize;
-  if (nextIndex >= allProducts.length) {
-    loadMoreBtn.style.display = "none";
-  } else {
-    loadMoreBtn.style.display = "inline-block";
-  }
+// ============================
+// HELPERS
+// ============================
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
-// fetch products once and initialize pagination
-async function loadProducts() {
-  const grid = document.getElementById("productGrid");
-  if (!grid) return;
-  grid.innerHTML = "<p>Loading products...</p>";
-
-  try {
-    const res = await fetch(`${API}/products/`);
-    if (!res.ok) throw new Error(`Products fetch failed: ${res.status}`);
-    const products = await res.json();
-    console.log("Fetched products count:", products.length);
-
-    // apply category or q filter from URL
-    const params = new URLSearchParams(window.location.search);
-    const q = (params.get("q") || "").trim().toLowerCase();
-    const category = (params.get("category") || "").trim().toLowerCase();
-
-    allProducts = products.filter(p => {
-      if (category && p.category && p.category.toLowerCase() !== category) return false;
-      if (q) {
-        const inName = (p.name || "").toLowerCase().includes(q);
-        const inDesc = (p.description || "").toLowerCase().includes(q);
-        return inName || inDesc;
-      }
-      return true;
-    });
-
-    // reset pagination
-    pageIndex = 0;
-    grid.innerHTML = "";
-    renderProductsChunk(0);
-
-    // wire load more
-    const loadMoreBtn = document.getElementById("loadMoreBtn");
-    if (loadMoreBtn) {
-      loadMoreBtn.onclick = () => {
-        pageIndex++;
-        renderProductsChunk(pageIndex * pageSize);
-        // scroll a little to show new items
-        window.scrollBy({ top: 300, behavior: 'smooth' });
-      };
-    }
-  } catch (err) {
-    console.error("loadProducts error:", err);
-    grid.innerHTML = "<p>Failed to load products.</p>";
-    showToast("Failed to load products", true);
-  }
-}
-
-// init on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", () => {
-  loadProducts();
-  updateCartBadge();
-});

@@ -1,8 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_connection
-import random
-from datetime import datetime, timedelta
 
 users_bp = Blueprint("users", __name__)
 
@@ -67,7 +65,7 @@ def login():
         return jsonify({"error": "Invalid password"}), 401
 
     db.close()
-    # ✅ Send both user_id and username for localStorage
+    # ✅ Return user info for frontend session storage
     return (
         jsonify(
             {
@@ -111,15 +109,48 @@ def forgot_password():
     return jsonify({"message": "Password reset successful!"}), 200
 
 
-# ---------- USER FETCH (for header greeting) ----------
+# ---------- GET SINGLE USER ----------
 @users_bp.route("/<int:user_id>", methods=["GET"])
 def get_user(user_id):
     db = get_connection()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT id, username, email, phone FROM users WHERE id=%s", (user_id,))
+    cursor.execute(
+        "SELECT id, username, email, phone, created_at FROM users WHERE id=%s",
+        (user_id,),
+    )
     user = cursor.fetchone()
     db.close()
 
     if not user:
         return jsonify({"error": "User not found"}), 404
-    return jsonify(user)
+    return jsonify(user), 200
+
+
+# ---------- UPDATE USER ----------
+@users_bp.route("/update/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    data = request.get_json()
+    email = data.get("email")
+    phone = data.get("phone")
+
+    if not email or not phone:
+        return jsonify({"error": "Missing fields"}), 400
+
+    db = get_connection()
+    cursor = db.cursor()
+    cursor.execute(
+        "UPDATE users SET email=%s, phone=%s WHERE id=%s", (email, phone, user_id)
+    )
+    db.commit()
+    db.close()
+
+    return jsonify({"message": "Profile updated successfully"}), 200
+
+
+# ---------- LOGOUT ----------
+@users_bp.route("/logout", methods=["POST"])
+def logout():
+    """
+    This just confirms logout — frontend handles session clearing (localStorage).
+    """
+    return jsonify({"message": "User logged out successfully"}), 200

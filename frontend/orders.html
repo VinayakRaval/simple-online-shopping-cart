@@ -1,56 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>My Orders | ShopSmart</title>
-  <style>
-    body {
-      margin:0;
-      font-family:Poppins,system-ui;
-      background:#0b1220;
-      color:#e6eef8;
-    }
-    .container {
-      max-width:1000px;
-      margin:auto;
-      padding:20px;
-    }
-    h2 {
-      text-align:center;
-      color:#fff;
-      margin:20px 0;
-    }
-    .order {
-      background:#0f172a;
-      border-radius:12px;
-      padding:16px;
-      margin:14px 0;
-      border:1px solid rgba(255,255,255,0.05);
-    }
-    .order-header {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:10px;
-    }
-    .order-id {
-      color:#00b4db;
-      font-weight:600;
-    }
-    .order-items {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-    }
-    .item {
-      background:#081828;
-      border-radius:8px;
-      padding:8px 10px;
-      flex:1 1 200px;
-    }
-    .price {color:#00e0a8;}
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>My Orders — ShopSmart</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div id="header-root"></div>
@@ -60,11 +14,73 @@
       .then(h=>document.getElementById("header-root").innerHTML=h);
   </script>
 
-  <div class="container">
+  <section class="orders-section">
     <h2>My Orders</h2>
-    <div id="ordersContainer"></div>
-  </div>
+    <div id="ordersContainer" class="orders-container">
+      <p>Loading your orders...</p>
+    </div>
+  </section>
 
+  <div id="footer-root"></div>
+  <script>
+    fetch("components/footer.html")
+      .then(r=>r.text())
+      .then(h=>document.getElementById("footer-root").innerHTML=h);
+  </script>
+
+  <div id="toast-container"></div>
   <script src="js/orders.js"></script>
 </body>
+
+<style>
+body {
+  margin: 0;
+  font-family: Poppins, sans-serif;
+  background: #071021;
+  color: #e6eef8;
+}
+.orders-section {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 20px;
+}
+.order-card {
+  background: linear-gradient(180deg, #081627, #0e2740);
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+}
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-header h3 {
+  margin: 0;
+  color: #00b4db;
+}
+.order-items {
+  margin-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 10px;
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 10px;
+}
+.item img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #0f172a;
+}
+.status {
+  color: #00e0a8;
+  font-weight: bold;
+}
+</style>
 </html>

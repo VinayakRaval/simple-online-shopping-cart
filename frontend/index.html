@@ -1,44 +1,427 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ShopSmart — Home</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background: linear-gradient(180deg, #0b1220, #0f172a);
+      color: #e6eef8;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    /* ===== Hero Section ===== */
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      padding: 50px 8%;
+      background: linear-gradient(135deg, #0b1220, #081a2e);
+    }
+
+    .hero-content {
+      flex: 1;
+      color: #e6eef8;
+    }
+
+    .hero-content h1 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
+      color: #00b4db;
+    }
+
+    .hero-content p {
+      color: #9fb6c7;
+      font-size: 1.1rem;
+      margin-bottom: 25px;
+    }
+
+    .hero-img {
+      flex: 1;
+      text-align: right;
+    }
+
+    .hero-img img {
+      width: 100%;
+      max-width: 450px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== Search Bar ===== */
+    .search-bar-home {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 40px auto;
+      max-width: 600px;
+    }
+
+    .search-bar-home input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      background: #071427;
+      color: #e6eef8;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-bar-home button {
+      background: #00b4db;
+      color: #02121a;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .search-bar-home button:hover {
+      background: #00e0a8;
+    }
+
+    /* ===== Shop by Category ===== */
+    .categories {
+      max-width: 1200px;
+      margin: 60px auto 30px;
+      text-align: center;
+    }
+
+    .categories h2 {
+      color: #9fb6c7;
+      font-size: 1.6rem;
+      margin-bottom: 25px;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 20px;
+      padding: 0 20px;
+    }
+
+    .category-card {
+      background: #0b1228;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s;
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    .category-card:hover {
+      transform: scale(1.05);
+    }
+
+    .category-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+
+    .category-card h3 {
+      padding: 10px;
+      color: #e6eef8;
+      font-size: 1rem;
+    }
+
+    /* ===== Featured Products ===== */
+    section.featured {
+      max-width: 1200px;
+      margin: 60px auto;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .featured h2 {
+      font-size: 1.6rem;
+      color: #9fb6c7;
+      margin-bottom: 20px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: #0b1228;
+      padding: 15px;
+      border-radius: 10px;
+      transition: transform 0.2s;
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.3);
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #0f172a;
+    }
+
+    .p-title {
+      font-size: 1rem;
+      margin: 10px 0 4px;
+      color: #e6eef8;
+      font-weight: 600;
+    }
+
+    .p-price {
+      color: #00e0a8;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .p-actions button {
+      background: #00b4db;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #04202a;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .p-actions button:hover {
+      background: #00e0a8;
+    }
+
+    /* ===== Buttons ===== */
+    #loadMoreBtn, #viewAllBtn {
+      margin: 30px auto;
+      padding: 10px 20px;
+      background: #00b4db;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #02121a;
+      transition: background 0.3s;
+    }
+
+    #loadMoreBtn:hover, #viewAllBtn:hover {
+      background: #00e0a8;
+    }
+
+    /* ===== Profile Section ===== */
+    .profile-section {
+      text-align: right;
+      padding: 10px 40px;
+    }
+
+    .profile-section span {
+      font-size: 1rem;
+      color: #e6eef8;
+    }
+
+    .profile-section button {
+      background: #ff3b30;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-left: 12px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
+  <!-- ✅ Load Header -->
   <div id="header-root"></div>
-  <script>fetch('components/header.html').then(r=>r.text()).then(h=>document.getElementById('header-root').innerHTML=h);</script>
+  <script>
+    fetch("components/header.html")
+      .then(r => r.text())
+      .then(html => document.getElementById("header-root").innerHTML = html);
+  </script>
 
+  <!-- ✅ Profile Section -->
+  <div class="profile-section" id="profileSection"></div>
+
+  <!-- ✅ Hero Section -->
   <section class="hero">
-    <div class="hero-inner">
-      <div>
-        <h1>Deals of the Day — Best prices, fast delivery</h1>
-        <p>Handpicked electronics, fashion and accessories</p>
-        <a class="cta" href="products.html">Shop Now</a>
-      </div>
-      <img src="assets/images/hero.jpg" alt="hero" class="hero-img"/>
+    <div class="hero-content">
+      <h1>Welcome to ShopSmart 🛒</h1>
+      <p>Discover the latest gadgets, accessories, and tech at the best prices!</p>
+      <a href="products.html" style="background:#00b4db;padding:10px 16px;border-radius:8px;color:#02121a;text-decoration:none;font-weight:600;">Shop Now</a>
+    </div>
+    <div class="hero-img">
+      <img src="assets/images/hero.jpg" alt="ShopSmart Hero" />
     </div>
   </section>
 
+  <!-- ✅ Search Bar -->
+  <div class="search-bar-home">
+    <input id="homeSearch" type="text" placeholder="Search for products..." />
+    <button id="homeSearchBtn">Search</button>
+  </div>
+
+  <!-- ✅ Shop by Category -->
   <section class="categories">
-    <h2 style="color:#9fb6c7">Shop by Category</h2>
-    <div class="category-grid" id="categoryGrid"></div>
-  </section>
-
-  <section class="featured">
-    <h2 style="color:#9fb6c7">Featured Products</h2>
-    <div id="featuredGrid" class="product-grid"></div>
-    <div style="text-align:center;margin-top:16px">
-      <button id="loadMoreFeatured" class="btn">Load More</button>
+    <h2>Shop by Category</h2>
+    <div class="category-grid">
+      <div class="category-card" onclick="window.location.href='products.html?category=Phones'">
+        <img src="assets/images/categories/cat-phones.jpg" alt="Phones" />
+        <h3>Phones</h3>
+      </div>
+      <div class="category-card" onclick="window.location.href='products.html?category=Laptops'">
+        <img src="assets/images/categories/cat-laptops.jpg" alt="Laptops" />
+        <h3>Laptops</h3>
+      </div>
+      <div class="category-card" onclick="window.location.href='products.html?category=Smartwatches'">
+        <img src="assets/images/categories/cat-smartwatches.jpg" alt="Smartwatches" />
+        <h3>Smartwatches</h3>
+      </div>
+      <div class="category-card" onclick="window.location.href='products.html?category=Audio'">
+        <img src="assets/images/categories/cat-audio.jpg" alt="Audio" />
+        <h3>Audio</h3>
+      </div>
+      <div class="category-card" onclick="window.location.href='products.html?category=Accessories'">
+        <img src="assets/images/categories/cat-accessories.jpg" alt="Accessories" />
+        <h3>Accessories</h3>
+      </div>
     </div>
   </section>
 
+  <!-- ✅ Featured Products -->
+  <section class="featured">
+    <h2>Featured Products</h2>
+    <div id="featuredGrid" class="product-grid"></div>
+    <button id="loadMoreBtn">Load More</button>
+    <br>
+    <button id="viewAllBtn" onclick="window.location.href='products.html'">View All Products</button>
+  </section>
+
+  <!-- ✅ Footer -->
   <div id="footer-root"></div>
-  <script>fetch('components/footer.html').then(r=>r.text()).then(h=>document.getElementById('footer-root').innerHTML=h);</script>
+  <script>
+    fetch("components/footer.html")
+      .then(r => r.text())
+      .then(html => document.getElementById("footer-root").innerHTML = html);
+  </script>
 
-  <div id="toast-container"></div>
+  <script>
+    const API = "http://127.0.0.1:5000/api/products";
+    let allProducts = [];
+    let visibleCount = 8;
 
-  <script src="js/main.js"></script>
+    // Load Products
+    async function loadFeaturedProducts() {
+      const grid = document.getElementById("featuredGrid");
+      grid.innerHTML = "<p>Loading...</p>";
+      try {
+        const res = await fetch(`${API}/featured`);
+        allProducts = await res.json();
+        if (!Array.isArray(allProducts)) throw new Error("Invalid response");
+        renderProducts();
+      } catch (err) {
+        console.error(err);
+        grid.innerHTML = "<p style='color:red;'>Failed to load products.</p>";
+      }
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById("featuredGrid");
+      const visible = allProducts.slice(0, visibleCount);
+      grid.innerHTML = visible
+        .map(
+          p => `
+          <div class="product-card">
+            <img src="assets/images/${p.category.toLowerCase()}/${p.image}" 
+                 onerror="this.src='assets/images/placeholder.png'" 
+                 alt="${p.name}">
+            <h4 class="p-title">${p.name}</h4>
+            <div class="p-price">₹${p.price}</div>
+            <div class="p-actions">
+              <button onclick="addToCart(${p.id})">Add to Cart</button>
+              <button onclick="viewProduct(${p.id})">View</button>
+            </div>
+          </div>`
+        )
+        .join("");
+
+      const loadBtn = document.getElementById("loadMoreBtn");
+      loadBtn.style.display =
+        visibleCount >= allProducts.length ? "none" : "inline-block";
+    }
+
+    document.getElementById("loadMoreBtn").addEventListener("click", () => {
+      visibleCount += 4;
+      renderProducts();
+    });
+
+    // Search Button
+    document.getElementById("homeSearchBtn").addEventListener("click", () => {
+      const q = document.getElementById("homeSearch").value.trim();
+      if (!q) return alert("Please enter a search term.");
+      window.location.href = `products.html?q=${encodeURIComponent(q)}`;
+    });
+
+    document.getElementById("homeSearch").addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        const q = e.target.value.trim();
+        if (q) window.location.href = `products.html?q=${encodeURIComponent(q)}`;
+      }
+    });
+
+    function addToCart(productId) {
+      const userId = localStorage.getItem("user_id");
+      if (!userId) return (window.location.href = "login.html");
+      fetch("http://127.0.0.1:5000/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId, product_id: productId, quantity: 1 }),
+      }).then(res => res.json()).then(data => alert(data.message || data.error));
+    }
+
+    function viewProduct(id) {
+      window.location.href = `product-details.html?id=${id}`;
+    }
+
+    // Profile Section
+    document.addEventListener("DOMContentLoaded", async () => {
+      const userId = localStorage.getItem("user_id");
+      const profile = document.getElementById("profileSection");
+      if (!userId) {
+        profile.innerHTML = `<a href="login.html" style="color:#00b4db;">Login</a> | <a href="signup.html" style="color:#00b4db;">Create Account</a>`;
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/users/${userId}`);
+        const user = await res.json();
+        const name = user.username?.split(" ")[0] || "User";
+        profile.innerHTML = `<span>👤 ${name}</span> <button onclick="logoutUser()">Logout</button>`;
+      } catch {
+        profile.innerHTML = `<button onclick="logoutUser()">Logout</button>`;
+      }
+    });
+
+    function logoutUser() {
+      localStorage.removeItem("user_id");
+      alert("Logged out successfully!");
+      window.location.href = "login.html";
+    }
+
+    loadFeaturedProducts();
+  </script>
 </body>
 </html>

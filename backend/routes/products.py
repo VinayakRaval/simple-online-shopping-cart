@@ -1,52 +1,69 @@
 from flask import Blueprint, jsonify, request
-from models import get_all_products, get_product_by_id, add_product
 from database import get_connection
 
-products_bp = Blueprint("products", __name__)
+products_bp = Blueprint('products', __name__)
 
-@products_bp.route("/", methods=["GET"])
-def list_products():
-    # support query params q (search) and category and sort
-    q = request.args.get("q", "").strip()
-    category = request.args.get("category", "").strip()
-    sort = request.args.get("sort", "").strip()
+# ---------- Get All Products ----------
+@products_bp.route('/', methods=['GET'])
+def get_all_products():
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products")
+    products = cursor.fetchall()
+    db.close()
+    return jsonify(products), 200
 
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    base = "SELECT * FROM products WHERE 1=1"
-    params = []
-    if q:
-        base += " AND (LOWER(name) LIKE %s OR LOWER(description) LIKE %s)"
-        qparam = f"%{q.lower()}%"
-        params.extend([qparam, qparam])
-    if category:
-        base += " AND LOWER(category)=LOWER(%s)"
-        params.append(category)
-    if sort == "price_asc":
-        base += " ORDER BY price ASC"
-    elif sort == "price_desc":
-        base += " ORDER BY price DESC"
-    else:
-        base += " ORDER BY id DESC"
 
-    cursor.execute(base, tuple(params))
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify(rows), 200
+# ---------- Get Single Product ----------
+@products_bp.route('/<int:product_id>', methods=['GET'])
+def get_product_by_id(product_id):
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE id=%s", (product_id,))
+    product = cursor.fetchone()
+    db.close()
 
-@products_bp.route("/<int:product_id>", methods=["GET"])
-def get_product(product_id):
-    product = get_product_by_id(product_id)
-    if product:
-        return jsonify(product), 200
-    return jsonify({"error":"Product not found"}), 404
+    if not product:
+        return jsonify({"error": "Product not found"}), 404
+    return jsonify(product), 200
 
-@products_bp.route("/add", methods=["POST"])
-def create_product():
+
+# ---------- Get Featured Products ----------
+@products_bp.route('/featured', methods=['GET'])
+def get_featured_products():
+    """
+    Returns the top 9 products or random featured items.
+    """
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products ORDER BY id DESC LIMIT 9")
+    products = cursor.fetchall()
+    db.close()
+
+    if not products:
+        return jsonify({"error": "No featured products found"}), 404
+    return jsonify(products), 200
+
+
+# ---------- Add Product ----------
+@products_bp.route('/add', methods=['POST'])
+def add_product():
     data = request.get_json()
-    required = ["name","price"]
-    if not all(k in data for k in required):
-        return jsonify({"error":"Missing fields"}), 400
-    add_product(data.get("name"), data.get("price"), data.get("image",""), data.get("category",""), data.get("description",""))
-    return jsonify({"message":"Product added"}), 201
+    name = data.get("name")
+    price = data.get("price")
+    image = data.get("image")
+    category = data.get("category")
+    description = data.get("description")
+
+    if not name or not price:
+        return jsonify({"error": "Missing product data"}), 400
+
+    db = get_connection()
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO products (name, price, image, category, description) VALUES (%s, %s, %s, %s, %s)",
+        (name, price, image, category, description),
+    )
+    db.commit()
+    db.close()
+    return jsonify({"message": "Product added successfully"}), 201

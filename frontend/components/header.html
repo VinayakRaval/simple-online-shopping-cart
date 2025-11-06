@@ -1,141 +1,252 @@
+<!-- components/header.html -->
 <header class="navbar">
   <div class="nav-left">
     <a href="index.html" class="logo">🛒 ShopSmart</a>
-    <div class="search-wrap">
-      <input id="globalSearch" placeholder="Search products, brands..." />
-      <button id="globalSearchBtn" aria-label="Search">🔍</button>
-      <select id="homeSort" title="Sort" style="margin-left:8px;">
-        <option value="">Sort</option>
-        <option value="price_asc">Price: Low → High</option>
-        <option value="price_desc">Price: High → Low</option>
-        <option value="newest">Newest</option>
-      </select>
-    </div>
-  </div>
+
+    <!-- ✅ Global Search (no button, Enter key only) -->
+   
 
   <div class="nav-right">
     <a href="products.html" class="nav-item">Products</a>
-    <a href="cart.html" class="nav-item">🛒 Cart <span id="cartCount" class="cart-count">0</span></a>
+    <a href="cart.html" class="nav-item">
+      🛒 Cart <span id="cartCount" class="cart-count">0</span>
+    </a>
 
-    <div class="dropdown nav-item">
-      <span id="userMenuLabel">👤 Account</span>
-      <div class="dropdown-content" id="accountDropdown">
-        <a href="login.html" id="loginLink">Login</a>
-        <a href="signup.html" id="signupLink">Create Account</a>
-        <a href="orders.html" id="ordersLink" style="display:none;">My Orders</a>
-        <a href="profile.html" id="profileLink" style="display:none;">Profile</a>
-        <a href="#" id="logoutLink" style="display:none;">Logout</a>
-      </div>
-    </div>
+    <!-- ✅ Dynamic User Section -->
+    <div id="userSection" class="nav-item"></div>
   </div>
 </header>
 
-<!-- toast container -->
+<!-- Toast Container -->
 <div id="toast-container"></div>
 
+<style>
+/* ====== Navbar Styling ====== */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 28px;
+  background: linear-gradient(180deg, #0b1220, #0f172a);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 18px rgba(2, 6, 23, 0.6);
+}
+.logo {
+  font-weight: 700;
+  color: #00b4db;
+  text-decoration: none;
+  font-size: 1.2rem;
+  margin-right: 18px;
+}
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #0b1228;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+#globalSearch {
+  width: 320px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e6eef8;
+  outline: none;
+  font-size: 0.95rem;
+}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.nav-item {
+  color: #e6eef8;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+.nav-item:hover {
+  color: #00e0a8;
+}
+.cart-count {
+  background: #ff3b30;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+/* ====== Search Suggestions ====== */
+.search-suggestions {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  width: 100%;
+  max-height: 320px;
+  overflow: auto;
+  background: #071427;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  display: none;
+  z-index: 2000;
+}
+.search-suggestions .item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  color: #e6eef8;
+}
+.search-suggestions .item:hover {
+  background: #081a2a;
+}
+.search-suggestions img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #0f172a;
+}
+.search-suggestions .empty {
+  padding: 12px;
+  color: #9fb6c7;
+  text-align: center;
+}
+
+/* ====== Toast ====== */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+.toast {
+  background: #00b4db;
+  color: #02121a;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-top: 10px;
+  font-weight: 600;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: slideIn 0.4s forwards;
+}
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 820px) {
+  #globalSearch {
+    width: 140px;
+  }
+}
+</style>
+
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const userId = localStorage.getItem("user_id");
-  const loginLink = document.getElementById("loginLink");
-  const signupLink = document.getElementById("signupLink");
-  const ordersLink = document.getElementById("ordersLink");
-  const profileLink = document.getElementById("profileLink");
-  const logoutLink = document.getElementById("logoutLink");
-  const userMenuLabel = document.getElementById("userMenuLabel");
+  const userSection = document.getElementById("userSection");
   const cartCountEl = document.getElementById("cartCount");
 
+  // ✅ Toast helper
+  window.showToast = function (msg, isError = false) {
+    const c =
+      document.getElementById("toast-container") ||
+      (() => {
+        const d = document.createElement("div");
+        d.id = "toast-container";
+        document.body.appendChild(d);
+        return d;
+      })();
+
+    const t = document.createElement("div");
+    t.className = "toast";
+    t.style.background = isError ? "#ff4b4b" : "#00b4db";
+    t.style.color = isError ? "#fff" : "#02121a";
+    t.innerText = msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  };
+
+  // ✅ Update Cart Count
   async function updateCartCount() {
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/cart/${userId || 1}`);
+      if (!userId) {
+        cartCountEl.textContent = "0";
+        return;
+      }
+      const res = await fetch(`http://127.0.0.1:5000/api/cart/${userId}`);
       const items = await res.json();
-      const total = items.reduce((s,i)=>s+(i.quantity||1),0);
+      const total = Array.isArray(items)
+        ? items.reduce((s, i) => s + (i.quantity || 1), 0)
+        : 0;
       cartCountEl.textContent = total;
-    } catch {
-      // fallback local
-      const cartLocal = JSON.parse(localStorage.getItem("cart")||"[]");
-      cartCountEl.textContent = cartLocal.reduce((s,i)=>s+(i.quantity||1),0) || 0;
+    } catch (e) {
+      cartCountEl.textContent = "0";
     }
   }
   updateCartCount();
   window.updateCartBadge = updateCartCount;
 
-  window.showToast = function (msg, isErr=false) {
-    const t = document.createElement("div");
-    t.className = "toast";
-    t.style.background = isErr? "#ff4b4b" : "#00b4db";
-    t.innerText = msg;
-    document.getElementById("toast-container").appendChild(t);
-    setTimeout(()=>t.remove(), 3000);
-  };
+  // ✅ Global Search (Enter Key Only)
+  const searchInput = document.getElementById("globalSearch");
 
-  if (userId) {
-    loginLink.style.display='none'; signupLink.style.display='none';
-    ordersLink.style.display='block'; profileLink.style.display='block'; logoutLink.style.display='block';
-    fetch(`http://127.0.0.1:5000/api/users/${userId}`).then(r=>r.json()).then(u=>{
-      if(u && u.fullname) userMenuLabel.textContent = `👋 ${u.fullname.split(" ")[0]}`;
-    }).catch(()=>userMenuLabel.textContent="👤 Account");
-  } else {
-    loginLink.style.display='block'; signupLink.style.display='block';
-    ordersLink.style.display='none'; profileLink.style.display='none'; logoutLink.style.display='none';
+  if (searchInput) {
+    const doSearch = () => {
+      const query = searchInput.value.trim();
+      if (query.length === 0) {
+        showToast("Please enter a search term", true);
+        return;
+      }
+      window.location.href = `products.html?q=${encodeURIComponent(query)}`;
+    };
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doSearch();
+    });
   }
 
-  logoutLink.addEventListener("click", (e) => {
-    e.preventDefault();
-    localStorage.removeItem("user_id");
-    showToast("Logged out");
-    setTimeout(()=>location.href="login.html",800);
-  });
-
-  document.getElementById("globalSearchBtn").addEventListener("click", ()=>{
-    const q = document.getElementById("globalSearch").value.trim();
-    if(!q) return location.href = "products.html";
-    location.href = `products.html?q=${encodeURIComponent(q)}`;
-  });
-  document.getElementById("globalSearch").addEventListener("keydown", (e)=>{ if(e.key==="Enter") document.getElementById("globalSearchBtn").click(); });
-
-  // Home sort (used on index page)
-  const homeSort = document.getElementById("homeSort");
-  if(homeSort){
-    homeSort.addEventListener("change", ()=> {
-      const s = homeSort.value;
-      // attach to URL when on index or products page
-      const loc = location.pathname.split("/").pop();
-      if(loc === "" || loc === "index.html") {
-        // reload featured with sort param saved in localStorage
-        localStorage.setItem("home_sort", s);
-        location.reload();
-      } else {
-        // if on products page use search param
-        location.href = `products.html?sort=${s}`;
-      }
-    });
+  // ✅ User Section
+  if (userId) {
+    try {
+      const r = await fetch(`http://127.0.0.1:5000/api/users/${userId}`);
+      const user = await r.json();
+      const name = user.username?.split(" ")[0] || "User";
+      userSection.innerHTML = `
+        <span>👋 Hi, ${name}</span> 
+        <button id="logoutBtn" style="
+          margin-left:12px; background:#ff3b30; border:none; color:#fff;
+          padding:6px 10px; border-radius:6px; cursor:pointer;">Logout</button>`;
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("user_id");
+        showToast("Logged out successfully!");
+        setTimeout(() => (window.location.href = "login.html"), 1000);
+      });
+    } catch (err) {
+      console.error(err);
+      userSection.innerHTML = `<a href="login.html">Login</a> | <a href="signup.html">Create Account</a>`;
+    }
+  } else {
+    userSection.innerHTML = `<a href="login.html">Login</a> | <a href="signup.html">Create Account</a>`;
   }
 });
 </script>
 
-<style>
-/* header CSS as earlier (dark) */
-.navbar{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:linear-gradient(180deg,#0b1220,#0f172a);color:#fff;position:sticky;top:0;z-index:1000;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
-.logo{font-weight:700;color:#00b4db;text-decoration:none;font-size:1.2rem;margin-right:18px}
-.nav-left{display:flex;align-items:center;gap:12px}
-.search-wrap{display:flex;align-items:center;background:#0b1228;padding:6px;border-radius:8px}
-#globalSearch{width:300px;padding:8px 10px;border-radius:6px;border:none;background:transparent;color:#e6eef8;outline:none}
-#globalSearchBtn{background:#00b4db;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;color:#04202a}
-#homeSort{background:#071021;color:#e6eef8;border:none;padding:6px;border-radius:6px;margin-left:8px}
-.nav-right{display:flex;align-items:center;gap:18px}
-.nav-item{color:#e6eef8;text-decoration:none;font-weight:500;position:relative}
-.nav-item:hover{color:#00e0a8}
-.cart-count{background:#ff3b30;color:#fff;border-radius:50%;padding:2px 6px;font-size:12px;margin-left:6px}
-.dropdown{position:relative}
-.dropdown-content{display:none;position:absolute;right:0;background:#071021;border-radius:8px;padding:6px 0;min-width:160px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
-.dropdown-content a{display:block;padding:10px 14px;color:#e6eef8;text-decoration:none}
-.dropdown:hover .dropdown-content{display:block}
-.dropdown-content a:hover{background:#0b2740}
-
-/* toast */
-#toast-container{position:fixed;bottom:20px;right:20px;z-index:9999}
-.toast{background:#00b4db;color:#02121a;padding:12px 20px;border-radius:8px;margin-top:10px;font-weight:600;box-shadow:0 5px 20px rgba(0,0,0,0.4);opacity:0;transform:translateY(20px);animation:slideIn 0.4s forwards}
-@keyframes slideIn{to{opacity:1;transform:translateY(0)}}
-
-@media(max-width:820px){#globalSearch{width:140px}.nav-left{gap:8px}}
-</style>
+<!-- Attach optional global search logic (for suggestions) -->
+<script src="js/global-search.js"></script>

@@ -1,94 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Shopping Cart</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | ShopSmart</title>
   <style>
+    * {margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif;}
     body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      min-height:100vh;
+      background:linear-gradient(135deg,#0f172a,#071021);
+      color:#e6eef8;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    .auth-container {
-      background: white;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-      width: 380px;
-      text-align: center;
+    .login-box {
+      background:#0b1220;
+      padding:40px;
+      border-radius:12px;
+      width:340px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.5);
+      text-align:center;
     }
-    .auth-container h2 {
-      margin-bottom: 25px;
-      color: #203a43;
+    h2 {color:#00b4db;margin-bottom:24px;}
+    input {
+      width:100%;
+      padding:10px 12px;
+      margin:8px 0;
+      border:none;
+      border-radius:6px;
+      background:#0f1a2e;
+      color:#fff;
+      outline:none;
     }
-    .auth-container input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
+    input:focus {border:1px solid #00b4db;}
+    button {
+      width:100%;
+      background:#00b4db;
+      border:none;
+      padding:10px;
+      color:#02121a;
+      border-radius:8px;
+      font-weight:600;
+      cursor:pointer;
+      margin-top:10px;
     }
-    .auth-container button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #203a43;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
+    button:hover {background:#00e0a8;}
+    a {
+      color:#9fb6c7;
+      font-size:14px;
+      text-decoration:none;
     }
-    .auth-container button:hover {
-      background: #2c5364;
-    }
-    .auth-container a {
-      display: block;
-      margin-top: 15px;
-      color: #203a43;
-      text-decoration: none;
-    }
-    .password-wrapper {
-      position: relative;
-    }
-    .eye-icon {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-    }
-    svg {
-      width: 22px;
-      height: 22px;
-      fill: #000;
-    }
+    a:hover {color:#00e0a8;}
   </style>
 </head>
 <body>
-  <div class="auth-container">
-    <h2>Login</h2>
-    <input type="text" id="loginInput" placeholder="Email or Phone" required>
-    <div class="password-wrapper">
-      <input type="password" id="loginPassword" placeholder="Password" required>
-      <span class="eye-icon" id="toggleLoginPassword">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/>
-        </svg>
-      </span>
+  <div class="login-box">
+    <h2>Login to ShopSmart</h2>
+    <input type="text" id="loginInput" placeholder="Email or Phone" />
+    <div style="position:relative;">
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <span id="toggleLoginPassword" style="position:absolute;right:10px;top:12px;cursor:pointer;">👁️</span>
     </div>
-    <button id="loginBtn" type="button">Login</button>
-    <a href="signup.html">Don't have an account? Sign Up</a>
-    <a href="forgot_password.html">Forgot Password?</a>
+    <button id="loginBtn">Login</button>
+    <div style="margin-top:15px;">
+      <a href="signup.html">Create Account</a> | 
+      <a href="forgot_password.html">Forgot Password?</a>
+    </div>
   </div>
-  <script src="js/auth.js"></script>
-  <script src="js/auth_check.js"></script>
 
+  <script src="js/auth.js"></script>
 </body>
 </html>

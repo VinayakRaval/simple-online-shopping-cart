@@ -1,43 +1,76 @@
-// frontend/js/product-details.js
 const API = "http://127.0.0.1:5000/api";
-const user_id = parseInt(localStorage.getItem("user_id")) || 1;
+const user_id = parseInt(localStorage.getItem("user_id"));
 
-// toast + updateCartBadge (duplicate because this file is standalone)
-function showToast(message, isError = false) {
-  const container = document.getElementById("toast-container") || (() => {
-    const c = document.createElement("div"); c.id = "toast-container"; document.body.appendChild(c); return c;
-  })();
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const product_id = params.get("id");
+  if (product_id) loadProductDetails(product_id);
+});
 
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.style.background = isError ? "#ff4b4b" : "#00b4db";
-  toast.style.color = isError ? "#fff" : "#02121a";
-  toast.style.padding = "10px 14px";
-  toast.style.borderRadius = "8px";
-  toast.style.marginTop = "8px";
-  toast.style.fontWeight = "600";
-  toast.innerText = message;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3000);
-}
+// 🔹 Load Product Details
+async function loadProductDetails(id) {
+  const container = document.getElementById("productDetails");
+  container.innerHTML = "<p>Loading...</p>";
 
-async function updateCartBadge() {
   try {
-    const res = await fetch(`${API}/cart/${user_id}`);
-    if (!res.ok) throw new Error("cart fetch failed");
-    const items = await res.json();
-    const total = items.reduce((s,i)=>s+(i.quantity||0),0);
-    const e = document.getElementById("cartCount");
-    const f = document.getElementById("floatCount");
-    if (e) e.innerText = total;
-    if (f) f.innerText = total;
+    const res = await fetch(`${API}/products/${id}`);
+    const product = await res.json();
+
+    if (!product || product.error) {
+      container.innerHTML = "<p>Product not found.</p>";
+      return;
+    }
+
+    // choose folder dynamically
+    const categoryFolder = product.category
+      ? product.category.toLowerCase()
+      : "others";
+    const imagePath = `assets/images/${categoryFolder}/${product.image}`;
+
+    container.innerHTML = `
+      <div class="product-wrapper">
+        <div class="left-col">
+          <img src="${imagePath}" class="main-img" id="mainImage" alt="${product.name}"
+            onerror="this.src='assets/images/placeholder.png'">
+          <div class="thumb-row">
+            <img src="${imagePath}" alt="${product.name}" onclick="setMainImage('${imagePath}')">
+            <img src="assets/images/placeholder.png" alt="thumb" onclick="setMainImage('assets/images/placeholder.png')">
+          </div>
+        </div>
+        <div class="right-col">
+          <h2>${product.name}</h2>
+          <p class="desc">${product.description || "No description available."}</p>
+          <div class="price">₹${product.price}</div>
+
+          <ul class="highlight-list">
+            <li>⭐ High Performance Guaranteed</li>
+            <li>🛡️ 1 Year Manufacturer Warranty</li>
+            <li>🚀 Fast & Free Delivery</li>
+            <li>🔄 Easy 7-Day Replacement</li>
+          </ul>
+
+          <div class="delivery">Delivery by <b>${new Date(Date.now() + 3*24*60*60*1000).toDateString()}</b></div>
+
+          <div class="actions">
+            <button class="btn add" onclick="addToCart(${product.id})">Add to Cart</button>
+            <button class="btn buy" onclick="buyNow(${product.id})">Buy Now</button>
+          </div>
+        </div>
+      </div>
+    `;
   } catch (err) {
-    console.warn("updateCartBadge:", err);
+    console.error(err);
+    container.innerHTML = "<p>Failed to load product details.</p>";
   }
 }
 
+// 🔹 Update main image
+function setMainImage(src) {
+  document.getElementById("mainImage").src = src;
+}
+
+// 🔹 Add to Cart
 async function addToCart(product_id) {
-  const user_id = parseInt(localStorage.getItem("user_id"));
   if (!user_id) {
     alert("Please log in to add items to cart.");
     window.location.href = "login.html";
@@ -45,72 +78,54 @@ async function addToCart(product_id) {
   }
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/api/cart/add", {
+    const res = await fetch(`${API}/cart/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id, product_id, quantity: 1 }),
     });
-    const data = await res.json();
 
+    const data = await res.json();
     if (res.ok) {
-      showToast("✅ Item added to cart!");
+      showToast("✅ Added to cart!");
       if (window.updateCartBadge) window.updateCartBadge();
     } else {
       showToast("⚠️ " + (data.error || "Failed to add item"), true);
     }
   } catch (err) {
     console.error(err);
-    showToast("❌ Could not add to cart", true);
+    showToast("❌ Network error", true);
   }
 }
 
-// load a single product and render
-async function loadProductDetails(productId) {
-  const container = document.getElementById("productDetails");
-  if (!container) return;
-  container.innerHTML = "<p>Loading...</p>";
-
-  try {
-    const res = await fetch(`${API}/products/${productId}`);
-    if (!res.ok) throw new Error(`Product fetch failed ${res.status}`);
-    const product = await res.json();
-
-    // sanitize fields to fallback
-    const img = product.image || 'placeholder.png';
-    const name = product.name || 'Unnamed';
-    const price = product.price !== undefined ? parseFloat(product.price).toFixed(2) : '0.00';
-    const desc = product.description || '';
-
-    container.innerHTML = `
-      <div class="details">
-        <img src="assets/images/${img}" class="detail-img" alt="${name}" onerror="this.onerror=null;this.src='assets/images/placeholder.png'">
-        <div class="info">
-          <h2>${name}</h2>
-          <p class="desc">${desc}</p>
-          <h3 class="price">₹${price}</h3>
-          <div style="display:flex;gap:10px;align-items:center;margin-top:12px">
-            <button class="btn add" id="addToCartBtn">Add to Cart</button>
-            <input id="qtyInput" type="number" min="1" value="1" style="width:70px;padding:8px;border-radius:6px;border:none">
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.getElementById("addToCartBtn").addEventListener("click", () => {
-      const qty = parseInt(document.getElementById("qtyInput").value) || 1;
-      addToCart(product.id, qty);
-    });
-
-  } catch (err) {
-    console.error("loadProductDetails error:", err);
-    container.innerHTML = "<p>Failed to load product details.</p>";
-  }
+// 🔹 Buy Now (redirect)
+function buyNow(product_id) {
+  addToCart(product_id);
+  setTimeout(() => (window.location.href = "cart.html"), 800);
 }
 
-// bootstrap
-document.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(window.location.search);
-  const id = params.get("id");
-  if (id) loadProductDetails(id);
-  updateCartBadge();
-});
+// 🔹 Toast utility
+function showToast(msg, isError = false) {
+  const toastContainer = document.getElementById("toast-container") || (() => {
+    const div = document.createElement("div");
+    div.id = "toast-container";
+    div.style.position = "fixed";
+    div.style.bottom = "20px";
+    div.style.right = "20px";
+    div.style.zIndex = "9999";
+    document.body.appendChild(div);
+    return div;
+  })();
+
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = msg;
+  toast.style.background = isError ? "#ff4b4b" : "#00b4db";
+  toast.style.color = "#02121a";
+  toast.style.padding = "12px 20px";
+  toast.style.borderRadius = "8px";
+  toast.style.marginTop = "10px";
+  toast.style.fontWeight = "600";
+  toast.style.boxShadow = "0 5px 20px rgba(0,0,0,0.4)";
+  toastContainer.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
