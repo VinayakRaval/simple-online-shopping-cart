@@ -2,161 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>My Orders — ShopSmart</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    body {
-      background: linear-gradient(180deg, #0b1220, #0f172a);
-      color: #e6eef8;
-      font-family: "Poppins", sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .orders-container {
-      max-width: 1000px;
-      margin: 50px auto;
-      background: #0b1228;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-    }
-    h2 {
-      text-align: center;
-      color: #00b4db;
-      margin-bottom: 25px;
-    }
-    .order-card {
-      background: #081524;
-      margin-bottom: 20px;
-      border-radius: 10px;
-      padding: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      transition: transform 0.3s;
-    }
-    .order-card:hover {
-      transform: translateY(-4px);
-    }
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-    }
-    .order-header h3 {
-      color: #00e0a8;
-      font-size: 1.1rem;
-      margin: 0;
-    }
-    .order-header span {
-      font-size: 0.9rem;
-      color: #9fb6c7;
-    }
-    .order-items {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #0f172a;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .item img {
-      width: 60px;
-      height: 60px;
-      object-fit: cover;
-      border-radius: 6px;
-      background: #071427;
-    }
-    .item-info {
-      flex: 1;
-    }
-    .item-info h4 {
-      font-size: 0.95rem;
-      margin: 0;
-      color: #e6eef8;
-    }
-    .item-info span {
-      color: #9fb6c7;
-      font-size: 0.85rem;
-    }
-    .total {
-      text-align: right;
-      font-weight: 700;
-      color: #00e0a8;
-      margin-top: 10px;
-    }
-    .no-orders {
-      text-align: center;
-      padding: 50px;
-      color: #9fb6c7;
-      font-size: 1.1rem;
-    }
+    body { background: linear-gradient(180deg,#0b1220,#0f172a); color:#e6eef8; font-family:Poppins,sans-serif; margin:0; }
+    .orders-container { max-width:900px; margin:40px auto; background:#0b1228; padding:20px; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.4); }
+    h2 { text-align:center; color:#00b4db; }
+    .order-card { background:#0f172a; border-radius:8px; margin:15px 0; padding:15px; }
+    .order-header { display:flex; justify-content:space-between; color:#00e0a8; font-weight:600; }
+    .item { display:flex; align-items:center; gap:10px; background:#0b1228; padding:10px; border-radius:6px; margin-top:10px; }
+    .item img { width:60px; height:60px; border-radius:6px; object-fit:cover; background:#000; }
   </style>
 </head>
 <body>
   <div id="header-root"></div>
-  <script>
-    fetch("components/header.html")
-      .then(r => r.text())
-      .then(h => document.getElementById("header-root").innerHTML = h);
-  </script>
+  <script>fetch("components/header.html").then(r=>r.text()).then(h=>document.getElementById("header-root").innerHTML=h)</script>
 
   <div class="orders-container">
-    <h2>My Orders</h2>
+    <h2>📦 My Orders</h2>
     <div id="ordersList"></div>
   </div>
 
   <script>
-    async function loadOrders() {
-      const userId = localStorage.getItem("user_id");
-      if (!userId) return (window.location.href = "login.html");
+    const userId = localStorage.getItem("user_id");
+    if (!userId) window.location.href = "login.html";
 
-      const ordersList = document.getElementById("ordersList");
-      ordersList.innerHTML = "<p style='text-align:center;'>Loading orders...</p>";
+    async function loadOrders() {
+      const container = document.getElementById("ordersList");
+      container.innerHTML = "<p>Loading your orders...</p>";
 
       try {
         const res = await fetch(`http://127.0.0.1:5000/api/orders/user/${userId}`);
         const data = await res.json();
 
-        if (!Array.isArray(data) || !data.length) {
-          ordersList.innerHTML = "<div class='no-orders'>You haven’t placed any orders yet.</div>";
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = "<p>No orders found yet.</p>";
           return;
         }
 
-        ordersList.innerHTML = data.map(o => `
+        container.innerHTML = data.map(o => `
           <div class="order-card">
             <div class="order-header">
-              <h3>Order #${o.order_id}</h3>
-              <span>${new Date(o.order_date).toLocaleString()}</span>
+              <span>Order #${o.order_id}</span>
+              <span>Status: ${o.status}</span>
             </div>
-            <div class="order-items">
+            <p>Placed on: ${new Date(o.order_date).toLocaleString()}</p>
+            <p>Total: ₹${o.total_price}</p>
+            <div>
               ${o.items.map(i => `
                 <div class="item">
-                  <img src="assets/images/${i.image ? `${i.image.includes('/') ? i.image : (i.name.toLowerCase().includes('phone') ? 'phones' : 'accessories') + '/' + i.image}` : 'placeholder.png'}" alt="${i.name}" />
-                  <div class="item-info">
-                    <h4>${i.name}</h4>
-                    <span>Qty: ${i.quantity} × ₹${i.price}</span>
+                  <img src="assets/images/${i.category}/${i.image}" onerror="this.src='assets/images/placeholder.png'">
+                  <div>
+                    <strong>${i.product_name}</strong><br>
+                    ₹${i.price} × ${i.quantity}
                   </div>
                 </div>
-              `).join('')}
+              `).join("")}
             </div>
-            <div class="total">Total: ₹${o.total_price || (o.items.reduce((s, i) => s + (i.price * i.quantity), 0))}</div>
           </div>
-        `).join('');
+        `).join("");
+
       } catch (err) {
         console.error(err);
-        ordersList.innerHTML = "<div class='no-orders' style='color:red;'>Failed to load orders.</div>";
+        container.innerHTML = "<p style='color:red;'>Failed to load orders.</p>";
       }
     }
 
-    loadOrders();
+    document.addEventListener("DOMContentLoaded", loadOrders);
   </script>
 </body>
 </html>

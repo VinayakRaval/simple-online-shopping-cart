@@ -150,3 +150,24 @@ async function placeOrder() {
     showToast("❌ Network error", true);
   }
 }
+async function removeFromCart(cartId, productId) {
+  const userId = localStorage.getItem("user_id");
+  try {
+    const res = await fetch("http://127.0.0.1:5000/api/cart/remove", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, cart_id: cartId, product_id: productId })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast("🗑 Item removed");
+      loadCartItems(); // reload cart
+      updateCartBadge(); // update cart count in header
+    } else {
+      showToast(data.error || "Failed to remove", true);
+    }
+  } catch (err) {
+    console.error("Remove error:", err);
+    showToast("Server error removing item", true);
+  }
+}

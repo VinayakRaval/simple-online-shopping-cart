@@ -7,124 +7,280 @@
   <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
-      font-family: "Poppins", sans-serif;
       background: linear-gradient(180deg, #0b1220, #0f172a);
       color: #e6eef8;
+      font-family: "Poppins", sans-serif;
       margin: 0;
+      padding: 0;
+      overflow-x: hidden;
     }
-    h2 {
-      color: #00b4db;
-      text-align: center;
-      margin: 30px 0;
+
+    /* ===== HERO ===== */
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      padding: 50px 8%;
+      background: linear-gradient(135deg, #0b1220, #081a2e);
     }
-    .grid {
+    .hero-content { flex: 1; color: #e6eef8; }
+    .hero-content h1 { font-size: 2.3rem; margin-bottom: 10px; color: #00b4db; }
+    .hero-content p { color: #9fb6c7; font-size: 1.1rem; margin-bottom: 25px; }
+    .hero-img { flex: 1; text-align: right; }
+    .hero-img img { width: 100%; max-width: 450px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+
+    /* ===== SEARCH BAR ===== */
+    .search-bar-home {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 30px auto;
+      max-width: 600px;
+    }
+    .search-bar-home input {
+      flex: 1;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      background: #071427;
+      color: #e6eef8;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    .search-bar-home button {
+      background: #00b4db;
+      color: #02121a;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .search-bar-home button:hover { background: #00e0a8; }
+
+    /* ===== CATEGORY GRID ===== */
+    .category-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 20px;
-      padding: 20px;
+      max-width: 1000px;
+      margin: 40px auto;
+      text-align: center;
+    }
+    .category-grid div {
+      background: #0b1228;
+      padding: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .category-grid div:hover { transform: translateY(-6px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+    .category-grid img { width: 100%; border-radius: 8px; height: 120px; object-fit: cover; }
+    .category-grid p { color: #9fb6c7; font-weight: 600; margin-top: 10px; }
+
+    /* ===== PRODUCT GRID ===== */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
       max-width: 1200px;
-      margin: 0 auto;
+      margin: 20px auto;
     }
     .product-card {
       background: #0b1228;
+      padding: 15px;
       border-radius: 10px;
-      padding: 14px;
-      text-align: center;
-      box-shadow: 0 5px 18px rgba(0,0,0,0.5);
+      transition: transform 0.2s;
+      box-shadow: 0 5px 18px rgba(0, 0, 0, 0.3);
     }
-    .product-card img {
-      width: 160px;
-      height: 160px;
-      object-fit: contain;
-    }
-    .p-title {
-      font-weight: 600;
-      margin: 10px 0 6px;
-    }
-    .p-price {
-      color: #00e0a8;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
+    .product-card:hover { transform: translateY(-5px); }
+    .product-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; background: #0f172a; }
+    .p-title { font-size: 1rem; margin: 10px 0 4px; color: #e6eef8; font-weight: 600; }
+    .p-price { color: #00e0a8; font-weight: 700; margin-bottom: 10px; }
     .p-actions button {
-      padding: 6px 12px;
+      background: #00b4db;
       border: none;
-      border-radius: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
       cursor: pointer;
+      color: #04202a;
       font-weight: 600;
+      transition: background 0.3s;
+      margin: 2px;
     }
-    .add { background: #00b4db; color: #02121a; }
-    .view { background: #00e0a8; color: #02121a; }
+    .p-actions button:hover { background: #00e0a8; }
+
+    .section-title { text-align: center; font-size: 1.6rem; color: #9fb6c7; margin-top: 50px; }
+    #loadMoreBtn { display: block; margin: 20px auto; background: #00b4db; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+
+    #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+    .toast { padding: 10px 14px; border-radius: 8px; margin-top: 8px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
   </style>
 </head>
+
 <body>
-  <!-- Header -->
+  <!-- ===== HEADER (with Profile, Logout, Cart) ===== -->
   <div id="header-root"></div>
   <script>
-    // 🧠 Check login before loading page
-    const userId = localStorage.getItem("user_id");
-    if (!userId) {
-      window.location.href = "login.html";
-    } else {
-      fetch("components/header.html")
-        .then(r => r.text())
-        .then(h => document.getElementById("header-root").innerHTML = h);
+    (async function loadHeaderAndInit() {
+      try {
+        const res = await fetch("components/header.html");
+        const html = await res.text();
+        document.getElementById("header-root").innerHTML = html;
+        await new Promise(r => setTimeout(r, 50));
+        initHeaderUI();
+      } catch (err) {
+        console.error("Header load failed:", err);
+      }
+    })();
+
+    async function initHeaderUI() {
+      const userSection = document.getElementById("userSection");
+      const cartCountEl = document.getElementById("cartCount");
+      const userId = localStorage.getItem("user_id");
+
+      window.showToast = (msg, err=false) => {
+        const c = document.getElementById("toast-container") || (()=>{const d=document.createElement("div");d.id="toast-container";document.body.appendChild(d);return d;})();
+        const t=document.createElement("div");
+        t.className="toast";t.innerText=msg;
+        t.style.background=err?"#ff4b4b":"#00b4db";t.style.color=err?"#fff":"#02121a";
+        c.appendChild(t);setTimeout(()=>t.remove(),3000);
+      };
+
+      window.updateCartBadge = async () => {
+        try {
+          if (!userId) { if (cartCountEl) cartCountEl.textContent="0"; return; }
+          const res = await fetch(`http://127.0.0.1:5000/api/cart/${userId}`);
+          const items = await res.json();
+          const count = Array.isArray(items)?items.reduce((a,b)=>a+(b.quantity||1),0):0;
+          cartCountEl && (cartCountEl.textContent = count);
+        } catch { cartCountEl && (cartCountEl.textContent = "0"); }
+      };
+
+      if (userId) {
+        try {
+          const r = await fetch(`http://127.0.0.1:5000/api/users/${userId}`);
+          const u = await r.json();
+          const name = (u.username || u.name || "User").split(" ")[0];
+          userSection.innerHTML = `
+            <span style="font-weight:600">👋 ${name}</span>
+            <button id="profileBtn" style="margin-left:10px;padding:6px 10px;border:none;border-radius:6px;background:#00b4db;color:#02121a;cursor:pointer;">Profile</button>
+            <button id="logoutBtn" style="margin-left:10px;padding:6px 10px;border:none;border-radius:6px;background:#ff3b30;color:#fff;cursor:pointer;">Logout</button>`;
+          document.getElementById("profileBtn").onclick=()=>location.href="profile.html";
+          document.getElementById("logoutBtn").onclick=()=>{localStorage.removeItem("user_id");showToast("Logged out!");setTimeout(()=>location.href="login.html",500);};
+        } catch { userSection.innerHTML='<button onclick="location.href=\'login.html\'">Login / Signup</button>'; }
+      } else userSection.innerHTML='<button onclick="location.href=\'login.html\'">Login / Signup</button>';
+      window.updateCartBadge();
     }
   </script>
 
-  <h2>Featured Products</h2>
-  <div class="grid" id="featuredGrid"><p>Loading...</p></div>
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Welcome to ShopSmart 🛒</h1>
+      <p>Discover top products at unbeatable prices.</p>
+      <a href="#featuredGrid" style="background:#00b4db;padding:10px 16px;border-radius:8px;color:#02121a;text-decoration:none;font-weight:600;">Shop Now</a>
+    </div>
+    <div class="hero-img"><img src="assets/images/hero.jpg" alt="Hero"></div>
+  </section>
 
-  <div id="toast-container"></div>
+  <!-- ===== SEARCH BAR ===== -->
+  <div class="search-bar-home">
+    <input id="homeSearch" type="text" placeholder="Search for products..." />
+    <button id="homeSearchBtn">Search</button>
+  </div>
+
+  <!-- ===== SHOP BY CATEGORY ===== -->
+  <h2 class="section-title">Shop by Category</h2>
+  <div class="category-grid">
+    <div onclick="loadCategory('Phones')"><img src="assets/images/categories/cat-phones.jpg"><p>Phones</p></div>
+    <div onclick="loadCategory('Laptops')"><img src="assets/images/categories/cat-laptops.jpg"><p>Laptops</p></div>
+    <div onclick="loadCategory('Smartwatches')"><img src="assets/images/categories/cat-smartwatches.jpg"><p>Smartwatches</p></div>
+    <div onclick="loadCategory('Audio')"><img src="assets/images/categories/cat-audio.jpg"><p>Audio</p></div>
+    <div onclick="loadCategory('Accessories')"><img src="assets/images/categories/cat-accessories.jpg"><p>Accessories</p></div>
+  </div>
+
+  <!-- CATEGORY PRODUCTS -->
+  <h2 id="categoryTitle" class="section-title" style="display:none;"></h2>
+  <div id="categoryGrid" class="product-grid"></div>
+
+  <!-- FEATURED PRODUCTS -->
+  <h2 class="section-title">Featured Products</h2>
+  <div id="featuredGrid" class="product-grid"></div>
+  <button id="loadMoreBtn">Load More</button>
 
   <script>
     const API = "http://127.0.0.1:5000/api/products";
+    let allProducts = [], visibleCount = 8;
 
-    async function loadFeaturedProducts() {
+    async function loadProducts() {
       const grid = document.getElementById("featuredGrid");
-      try {
-        const res = await fetch(`${API}/featured`);
-        const products = await res.json();
-        if (!Array.isArray(products)) throw new Error();
-
-        grid.innerHTML = products.map(p => `
-          <div class="product-card">
-            <img src="assets/images/${p.category.toLowerCase()}/${p.image}" onerror="this.src='assets/images/placeholder.png'" alt="${p.name}">
-            <div class="p-title">${p.name}</div>
-            <div class="p-price">₹${p.price}</div>
-            <div class="p-actions">
-              <button class="add" onclick="addToCart(${p.id})">Add to Cart</button>
-              <button class="view" onclick="viewProduct(${p.id})">View</button>
-            </div>
-          </div>
-        `).join('');
-      } catch (e) {
-        grid.innerHTML = "<p style='color:red;'>Error loading featured products.</p>";
-      }
+      grid.innerHTML = "<p>Loading...</p>";
+      const res = await fetch(`${API}/featured`);
+      allProducts = await res.json();
+      renderProducts();
     }
 
-    async function addToCart(productId) {
-      const uid = localStorage.getItem("user_id");
-      if (!uid) { window.location.href = "login.html"; return; }
-      try {
-        const res = await fetch("http://127.0.0.1:5000/api/cart/add", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ user_id: uid, product_id: productId, quantity: 1 })
-        });
-        const data = await res.json();
-        alert(data.message || data.error);
-        if (window.updateCartBadge) window.updateCartBadge();
-      } catch {
-        alert("Server error adding to cart");
-      }
+    function renderProducts() {
+      const grid = document.getElementById("featuredGrid");
+      const visible = allProducts.slice(0, visibleCount);
+      grid.innerHTML = visible.map(p=>productCardHTML(p)).join('');
+      document.getElementById("loadMoreBtn").style.display = visibleCount>=allProducts.length?"none":"block";
     }
 
-    function viewProduct(id) {
-      window.location.href = `product-details.html?id=${id}`;
+    document.getElementById("loadMoreBtn").onclick=()=>{visibleCount+=4;renderProducts();};
+
+    document.getElementById("homeSearchBtn").onclick=async()=>{
+      const q=document.getElementById("homeSearch").value.trim();
+      if(!q)return loadProducts();
+      const res=await fetch(`${API}/search?q=${encodeURIComponent(q)}`);
+      const data=await res.json();
+      allProducts=data;visibleCount=8;renderProducts();
+    };
+
+    async function loadCategory(cat){
+      const grid=document.getElementById("categoryGrid"),title=document.getElementById("categoryTitle");
+      grid.innerHTML="<p>Loading...</p>";title.style.display="block";title.textContent=cat+" Products";
+      const res=await fetch(`${API}/search?q=${encodeURIComponent(cat)}`);
+      const data=await res.json();
+      grid.innerHTML=(data||[]).map(p=>productCardHTML(p)).join('')||"<p>No products.</p>";
     }
 
-    document.addEventListener("DOMContentLoaded", loadFeaturedProducts);
+    function productCardHTML(p){
+      return `<div class="product-card">
+        <img src="assets/images/${(p.category||'').toLowerCase()}/${p.image||'placeholder.png'}" onerror="this.src='assets/images/placeholder.png'" alt="${p.name}">
+        <h4 class="p-title">${p.name}</h4>
+        <div class="p-price">₹${p.price}</div>
+        <div class="p-actions">
+          <button onclick="addToCart(${p.id})">Add</button>
+          <button onclick="removeFromCart(${p.id})" style="background:#ff4b4b;color:white;">Remove</button>
+          <button onclick="viewProduct(${p.id})">View</button>
+        </div></div>`;
+    }
+
+    async function addToCart(pid){
+      const uid=localStorage.getItem("user_id");
+      if(!uid){alert("Login first");location.href="login.html";return;}
+      const res=await fetch("http://127.0.0.1:5000/api/cart/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:uid,product_id:pid,quantity:1})});
+      const d=await res.json();
+      if(res.ok){showToast("✅ Added to cart");window.updateCartBadge&&updateCartBadge();}else showToast(d.error||"Failed",true);
+    }
+
+    async function removeFromCart(pid){
+      const uid=localStorage.getItem("user_id");
+      if(!uid){alert("Login first");location.href="login.html";return;}
+      const res=await fetch("http://127.0.0.1:5000/api/cart/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:uid,product_id:pid})});
+      const d=await res.json();
+      if(res.ok){showToast("❌ Removed from cart");window.updateCartBadge&&updateCartBadge();}else showToast(d.error||"Failed",true);
+    }
+
+    function viewProduct(id){location.href=`product-details.html?id=${id}`;}
+    loadProducts();
   </script>
 </body>
 </html>
