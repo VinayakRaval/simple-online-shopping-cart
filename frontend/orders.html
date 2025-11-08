@@ -25,51 +25,41 @@
   </div>
 
   <script>
-    const userId = localStorage.getItem("user_id");
-    if (!userId) window.location.href = "login.html";
+const userId = localStorage.getItem("user_id");
+if (!userId) {
+  window.location.href = "login.html";
+}
 
-    async function loadOrders() {
-      const container = document.getElementById("ordersList");
-      container.innerHTML = "<p>Loading your orders...</p>";
-
-      try {
-        const res = await fetch(`http://127.0.0.1:5000/api/orders/user/${userId}`);
-        const data = await res.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-          container.innerHTML = "<p>No orders found yet.</p>";
-          return;
-        }
-
-        container.innerHTML = data.map(o => `
-          <div class="order-card">
-            <div class="order-header">
-              <span>Order #${o.order_id}</span>
-              <span>Status: ${o.status}</span>
-            </div>
-            <p>Placed on: ${new Date(o.order_date).toLocaleString()}</p>
-            <p>Total: ₹${o.total_price}</p>
-            <div>
-              ${o.items.map(i => `
-                <div class="item">
-                  <img src="assets/images/${i.category}/${i.image}" onerror="this.src='assets/images/placeholder.png'">
-                  <div>
-                    <strong>${i.product_name}</strong><br>
-                    ₹${i.price} × ${i.quantity}
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
-        `).join("");
-
-      } catch (err) {
-        console.error(err);
-        container.innerHTML = "<p style='color:red;'>Failed to load orders.</p>";
-      }
+async function loadOrders() {
+  const listContainer = document.getElementById("ordersList");
+  listContainer.innerHTML = "<p>Loading...</p>";
+  try {
+    const res = await fetch(`http://127.0.0.1:5000/api/orders/list/${userId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to load orders");
+    if (!data.length) {
+      listContainer.innerHTML = "<p>No orders found.</p>";
+      return;
     }
 
-    document.addEventListener("DOMContentLoaded", loadOrders);
-  </script>
+    listContainer.innerHTML = data.map(o => `
+      <div class="order-card">
+        <h3>Order #${o.order_id}</h3>
+        <p><b>Date:</b> ${new Date(o.order_date).toLocaleString()}</p>
+        <p><b>Total:</b> ₹${o.total_price}</p>
+        <p><b>Status:</b> ${o.status}</p>
+        <h4>Items:</h4>
+        <ul>${o.items.map(i => `<li>${i.product_name} × ${i.quantity}</li>`).join("")}</ul>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("Orders load error:", err);
+    listContainer.innerHTML = "<p style='color:red;'>Failed to load orders.</p>";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadOrders);
+</script>
+
 </body>
 </html>

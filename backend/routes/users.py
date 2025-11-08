@@ -154,3 +154,25 @@ def logout():
     This just confirms logout — frontend handles session clearing (localStorage).
     """
     return jsonify({"message": "User logged out successfully"}), 200
+
+
+@users_bp.route("/update-phone", methods=["POST"])
+def update_phone():
+    data = request.get_json()
+    user_id = data.get("user_id")
+    phone = data.get("phone")
+    if not user_id or not phone:
+        return jsonify({"error": "Missing fields"}), 400
+
+    db = get_connection()
+    cursor = db.cursor()
+    try:
+        cursor.execute("UPDATE users SET phone=%s WHERE id=%s", (phone, user_id))
+        db.commit()
+        return jsonify({"message": "Phone updated"}), 200
+    except Exception as e:
+        print("Update phone error:", e)
+        db.rollback()
+        return jsonify({"error": "Failed to update phone"}), 500
+    finally:
+        db.close()

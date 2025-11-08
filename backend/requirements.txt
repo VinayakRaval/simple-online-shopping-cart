@@ -1,4 +1,5 @@
-flask==3.0.3
+pip install flask flask-cors mysql-connector-python
+ flask==3.0.3
 flask-cors==4.0.1
 mysql-connector-python==9.0.0
 itsdangerous==2.2.0
@@ -13,6 +14,8 @@ itsdangerous
 bcrypt
 python-dotenv
 reportlab
+pip install bcrypt pycryptodome
+
 
 pip install -r requirements.txt
 

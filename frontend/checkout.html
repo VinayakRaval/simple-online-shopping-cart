@@ -48,104 +48,102 @@
   <div id="toast-container"></div>
 
   <script>
-    const ORDERS_API = "http://127.0.0.1:5000/api/orders";
-    const CART_API = "http://127.0.0.1:5000/api/cart";
-    const params = new URLSearchParams(window.location.search);
-    const productId = params.get("product_id"); // if present, single-product checkout
+  const ORDERS_API = "http://127.0.0.1:5000/api/orders";
+  const USERS_API = "http://127.0.0.1:5000/api/users";
+  const CART_API = "http://127.0.0.1:5000/api/cart";
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get("product_id");
 
-    function showToast(msg, isError=false){
-      const c = document.getElementById("toast-container");
-      const t = document.createElement("div");
-      t.className = "toast";
-      t.style.background = isError ? "#ff4b4b" : "#00b4db";
-      t.style.color = isError ? "#fff" : "#02121a";
-      t.style.padding = "10px 14px";
-      t.style.borderRadius = "8px";
-      t.style.marginTop = "8px";
-      t.innerText = msg;
-      c.appendChild(t);
-      setTimeout(()=>t.remove(),3000);
-    }
+  function showPopup(message, isError = false) {
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = 0;
+    overlay.style.left = 0;
+    overlay.style.width = "100vw";
+    overlay.style.height = "100vh";
+    overlay.style.background = "rgba(0,0,0,0.7)";
+    overlay.style.display = "flex";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.zIndex = 9999;
 
-    // If productId present, show summary for single product
-    async function loadSingleProductSummary(id){
-      try {
-        const res = await fetch(`http://127.0.0.1:5000/api/products/${id}`);
-        if (!res.ok) throw new Error("Product not found");
-        const p = await res.json();
-        document.getElementById("selectedProduct").style.display = "block";
-        document.getElementById("selectedProduct").innerHTML = `
-          <strong>${p.name}</strong><div class="small">₹${p.price} • ${p.category}</div>
-        `;
-      } catch (e) {
-        console.error("Load single product error:", e);
-        document.getElementById("selectedProduct").style.display = "none";
-      }
-    }
+    const box = document.createElement("div");
+    box.style.background = "#0b1228";
+    box.style.padding = "25px";
+    box.style.borderRadius = "10px";
+    box.style.textAlign = "center";
+    box.style.color = isError ? "#ff4b4b" : "#00e0a8";
+    box.style.fontSize = "1.2rem";
+    box.innerHTML = `<h3>${message}</h3>
+      <button id="popupClose" style="margin-top:15px;padding:8px 16px;border:none;border-radius:6px;background:#00b4db;color:#02121a;cursor:pointer;">OK</button>`;
 
-    document.getElementById("cancelBtn").addEventListener("click", ()=> window.history.back());
-
-    document.getElementById("checkoutForm").addEventListener("submit", async (ev)=>{
-      ev.preventDefault();
-      const user_id = localStorage.getItem("user_id");
-      if (!user_id) { showToast("Please login first", true); return window.location.href="login.html"; }
-
-      const payload = {
-        user_id: parseInt(user_id),
-        name: document.getElementById("name").value.trim(),
-        address: document.getElementById("address").value.trim(),
-        phone: document.getElementById("phone").value.trim()
-      };
-
-      try {
-        let res, data;
-        if (productId) {
-          // single product checkout -> POST /api/orders (route expects product_id)
-          payload.product_id = parseInt(productId);
-          res = await fetch(`${ORDERS_API}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        } else {
-          // cart checkout -> POST /api/orders/place
-          res = await fetch(`${ORDERS_API}/place`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-        }
-        data = await res.json();
-
-        if (res.ok) {
-          showToast("Order placed successfully!");
-          // after place, go to orders page
-          setTimeout(()=> window.location.href = "orders.html", 900);
-        } else {
-          showToast(data.error || "Failed to place order", true);
-        }
-      } catch (err) {
-        console.error("Place order error:", err);
-        showToast("Server error while placing order", true);
-      }
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    document.getElementById("popupClose").addEventListener("click", () => {
+      overlay.remove();
+      if (!isError) window.location.href = "orders.html";
     });
+  }
 
-    // prefill user profile (if available)
-    document.addEventListener("DOMContentLoaded", async ()=>{
-      const user_id = localStorage.getItem("user_id");
-      if (!user_id) return;
-      try {
-        const r = await fetch(`http://127.0.0.1:5000/api/users/${user_id}`);
-        if (r.ok) {
-          const u = await r.json();
-          document.getElementById("name").value = u.username || "";
-        }
-      } catch (e) { /* ignore */ }
+  document.getElementById("checkoutForm").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const user_id = localStorage.getItem("user_id");
+    if (!user_id) return (window.location.href = "login.html");
 
+    const name = document.getElementById("name").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+
+    const payload = { user_id: parseInt(user_id), name, address, phone };
+
+    try {
+      // Update user phone in DB
+      await fetch(`${USERS_API}/update-phone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, phone }),
+      });
+
+      // Place order
+      let res;
       if (productId) {
-        await loadSingleProductSummary(productId);
+        payload.product_id = parseInt(productId);
+        res = await fetch(`${ORDERS_API}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch(`${ORDERS_API}/place`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
       }
-    });
-  </script>
+
+      const data = await res.json();
+      if (res.ok) showPopup("✅ Order placed successfully!");
+      else showPopup("❌ " + (data.error || "Failed to place order"), true);
+    } catch (err) {
+      console.error("Place order error:", err);
+      showPopup("Server error placing order", true);
+    }
+  });
+
+  // Prefill user
+  document.addEventListener("DOMContentLoaded", async () => {
+    const user_id = localStorage.getItem("user_id");
+    if (!user_id) return;
+    try {
+      const r = await fetch(`${USERS_API}/${user_id}`);
+      if (r.ok) {
+        const u = await r.json();
+        document.getElementById("name").value = u.username || "";
+        document.getElementById("phone").value = u.phone || "";
+        document.getElementById("address").value = u.address || "";
+      }
+    } catch {}
+  });
+</script>
 </body>
 </html>

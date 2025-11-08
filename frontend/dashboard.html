@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      background: #0b1220;
+      color: #e6eef8;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: #0f172a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #081a2e;
+    }
+
+    .sidebar h2 {
+      color: #00b4db;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .nav-link {
+      color: #9fb6c7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      text-decoration: none;
+      display: block;
+    }
+    .nav-link:hover,
+    .nav-link.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      padding: 30px;
+      background: linear-gradient(180deg, #0b1220, #0f172a);
+    }
+
+    h1 {
+      color: #00b4db;
+      margin-bottom: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: #0b1228;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card h3 {
+      color: #00e0a8;
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .stat-card p {
+      color: #9fb6c7;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    .table-container {
+      margin-top: 40px;
+      background: #0b1228;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #e6eef8;
+    }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #1a2335;
+      text-align: left;
+    }
+
+    th {
+      color: #00b4db;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: #081a2e;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ShopSmart Admin</h2>
+    <a href="dashboard.html" class="nav-link active">📊 Dashboard</a>
+    <a href="products.html" class="nav-link">🛍 Products</a>
+    <a href="categories.html" class="nav-link">📁 Categories</a>
+    <a href="users.html" class="nav-link">👤 Users</a>
+    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <a href="../login.html" class="nav-link" onclick="logout()">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <h1>📊 Dashboard Overview</h1>
+
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><h3>0</h3><p>Total Users</p></div>
+      <div class="stat-card"><h3>0</h3><p>Total Products</p></div>
+      <div class="stat-card"><h3>0</h3><p>Total Orders</p></div>
+      <div class="stat-card"><h3>₹0</h3><p>Total Sales</p></div>
+    </div>
+
+    <div class="table-container">
+      <h2 style="color:#00b4db;">🔥 Top 5 Selling Products</h2>
+      <table id="topProductsTable">
+        <thead><tr><th>Product</th><th>Sold</th><th>Total Revenue</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <h2 style="color:#00b4db;">⚠️ Low Stock Alerts</h2>
+      <table id="lowStockTable">
+        <thead><tr><th>Product</th><th>Stock</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="table-container">
+      <h2 style="color:#00b4db;">🕒 Recent Orders</h2>
+      <table id="recentOrdersTable">
+        <thead><tr><th>Order ID</th><th>User</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000/api/admin/dashboard";
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch(API);
+        const data = await res.json();
+
+        // stats
+        const cards = document.querySelectorAll(".stat-card h3");
+        cards[0].textContent = data.total_users;
+        cards[1].textContent = data.total_products;
+        cards[2].textContent = data.total_orders;
+        cards[3].textContent = "₹" + data.total_sales.toFixed(2);
+
+        // top products
+        document.querySelector("#topProductsTable tbody").innerHTML =
+          data.top_products.map(p => `
+            <tr><td>${p.name}</td><td>${p.total_sold}</td><td>₹${p.revenue}</td></tr>
+          `).join('');
+
+        // low stock
+        document.querySelector("#lowStockTable tbody").innerHTML =
+          data.low_stock.map(p => `
+            <tr><td>${p.name}</td><td>${p.stock}</td></tr>
+          `).join('');
+
+        // recent orders
+        document.querySelector("#recentOrdersTable tbody").innerHTML =
+          data.recent_orders.map(o => `
+            <tr>
+              <td>${o.id}</td>
+              <td>${o.user}</td>
+              <td>₹${o.total_price}</td>
+              <td>${o.status}</td>
+              <td>${new Date(o.order_date).toLocaleString()}</td>
+            </tr>
+          `).join('');
+      } catch (err) {
+        console.error("Dashboard load error:", err);
+        alert("Failed to load dashboard data!");
+      }
+    }
+
+    function logout() {
+      localStorage.clear();
+      alert("Logged out successfully!");
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
