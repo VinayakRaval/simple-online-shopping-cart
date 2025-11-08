@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — ShopSmart</title>
+  <style>
+    body { font-family: Poppins, sans-serif; background:#0b1220; color:#e6eef8; margin:0; }
+    header {
+      background:#071427; padding:15px 20px; display:flex; justify-content:space-between; align-items:center;
+      box-shadow:0 2px 10px rgba(0,0,0,0.4);
+    }
+    header h1 { color:#00b4db; margin:0; font-size:1.3rem; }
+    header p { font-size:0.9rem; color:#9fb6c7; margin:0; }
+    header button { background:#00b4db; border:none; padding:8px 14px; border-radius:6px; font-weight:600; cursor:pointer; }
+    main { padding:30px; }
+    .stats { display:flex; flex-wrap:wrap; gap:20px; margin-bottom:20px; }
+    .stat { background:#071427; flex:1; min-width:180px; padding:15px; border-radius:12px; text-align:center; box-shadow:0 5px 20px rgba(0,0,0,0.4); }
+    .stat h3 { color:#00b4db; margin:0; }
+    .card { background:#071427; padding:20px; border-radius:12px; margin-bottom:25px; box-shadow:0 5px 20px rgba(0,0,0,0.4); }
+    input, textarea, select { width:100%; padding:10px; border:none; border-radius:6px; background:#0f172a; color:#e6eef8; margin-top:8px; }
+    button.submit { background:#00b4db; border:none; padding:10px; border-radius:6px; font-weight:600; cursor:pointer; margin-top:8px; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    th,td { padding:10px; border-bottom:1px solid #1a2338; text-align:left; }
+    th { color:#00b4db; }
+    td img { width:60px; height:60px; border-radius:8px; object-fit:cover; }
+    td button { background:#00b4db; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; margin-right:5px; }
+    td button.delete { background:#ff4b4b; color:white; }
+    #editModal,#editCatModal {
+      position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7);
+      display:none; align-items:center; justify-content:center; z-index:9999;
+    }
+    .modal-content {
+      background:#071427; padding:20px; border-radius:12px; width:90%; max-width:400px;
+      box-shadow:0 5px 25px rgba(0,0,0,0.6);
+    }
+    .modal-content h3 { color:#00b4db; margin-top:0; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <h1>🛍️ ShopSmart Admin Dashboard</h1>
+      <p id="adminName"></p>
+    </div>
+    <button onclick="logout()">Logout</button>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="stat"><h3>Users</h3><p id="totalUsers">0</p></div>
+      <div class="stat"><h3>Products</h3><p id="totalProducts">0</p></div>
+      <div class="stat"><h3>Orders</h3><p id="totalOrders">0</p></div>
+      <div class="stat"><h3>Categories</h3><p id="totalCategories">0</p></div>
+    </div>
+
+    <div class="card">
+      <h3>🗂️ Categories</h3>
+      <form id="catForm" enctype="multipart/form-data">
+        <input name="name" placeholder="Category Name" required>
+        <input name="image" type="file" accept="image/*">
+        <button type="submit" class="submit">Add Category</button>
+      </form>
+      <p id="catMsg"></p>
+      <table id="categoryTable">
+        <thead><tr><th>ID</th><th>Name</th><th>Image</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>🛒 Add Product</h3>
+      <form id="productForm" enctype="multipart/form-data">
+        <input name="name" placeholder="Product Name" required>
+        <textarea name="description" placeholder="Description"></textarea>
+        <input name="price" type="number" placeholder="Price" required>
+        <input name="stock" type="number" placeholder="Stock" required>
+        <select name="category" id="categorySelect" required><option>Loading...</option></select>
+        <input name="image" type="file" accept="image/*">
+        <button type="submit" class="submit">Add Product</button>
+      </form>
+      <p id="prodMsg"></p>
+    </div>
+
+    <div class="card">
+      <h3>📦 Manage Products</h3>
+      <table id="productTable">
+        <thead><tr><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- ✏️ Product Edit Modal -->
+  <div id="editModal">
+    <div class="modal-content">
+      <h3>Edit Product</h3>
+      <form id="editForm">
+        <input type="hidden" id="editId">
+        <input id="editName" placeholder="Product Name" required>
+        <input id="editPrice" type="number" placeholder="Price" required>
+        <input id="editStock" type="number" placeholder="Stock" required>
+        <textarea id="editDesc" placeholder="Description"></textarea>
+        <button type="submit" class="submit">💾 Save</button>
+        <button type="button" onclick="closeModal()" style="background:#ff4b4b;">✖ Close</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ✏️ Category Edit Modal -->
+  <div id="editCatModal">
+    <div class="modal-content">
+      <h3>Edit Category</h3>
+      <form id="editCatForm" enctype="multipart/form-data">
+        <input type="hidden" id="editCatId">
+        <input id="editCatName" placeholder="Category Name" required>
+        <input id="editCatImage" type="file" accept="image/*">
+        <button type="submit" class="submit">💾 Save</button>
+        <button type="button" onclick="closeCatModal()" style="background:#ff4b4b;">✖ Close</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000/api/admin";
+
+    async function loadStats() {
+      const res = await fetch(`${API}/dashboard`);
+      const d = await res.json();
+      totalUsers.textContent = d.total_users;
+      totalProducts.textContent = d.total_products;
+      totalOrders.textContent = d.total_orders;
+      totalCategories.textContent = d.total_categories;
+    }
+
+    async function loadCategories() {
+      const res = await fetch(`${API}/categories`);
+      const data = await res.json();
+      window.categories = data;
+      categorySelect.innerHTML = data.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      const tbody = document.querySelector("#categoryTable tbody");
+      tbody.innerHTML = data.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td>${c.name}</td>
+          <td><img src="${API}/images/${c.image}" alt="img"></td>
+          <td>
+            <button onclick="viewCategory(${c.id})">👁 View</button>
+            <button onclick="openCatEditModal(${c.id})">✏ Edit</button>
+            <button class="delete" onclick="deleteCategory(${c.id})">🗑 Delete</button>
+          </td>
+        </tr>`).join("");
+    }
+
+    async function loadProducts() {
+      const res = await fetch(`${API}/products`);
+      const data = await res.json();
+      window.products = data;
+      const tbody = document.querySelector("#productTable tbody");
+      tbody.innerHTML = data.map(p => `
+        <tr>
+          <td><img src="${API}/images/${p.image || 'noimg.png'}"></td>
+          <td>${p.name}</td><td>₹${p.price}</td><td>${p.stock}</td><td>${p.category}</td>
+          <td>
+            <button onclick="viewProduct(${p.id})">👁 View</button>
+            <button onclick="openEditModal(${p.id})">✏ Edit</button>
+            <button class="delete" onclick="deleteProduct(${p.id})">🗑 Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm("Delete this category?")) return;
+      await fetch(`${API}/delete_category/${id}`, { method: "DELETE" });
+      await Promise.all([loadCategories(), loadStats()]);
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Delete this product?")) return;
+      await fetch(`${API}/delete_product/${id}`, { method: "DELETE" });
+      await Promise.all([loadProducts(), loadStats()]);
+    }
+
+    // 👁 View Product
+    async function viewProduct(id) {
+      const res = await fetch(`${API}/product/${id}`);
+      const p = await res.json();
+      if (p.error) return alert(p.error);
+      alert(`Product: ${p.name}\nPrice: ₹${p.price}\nStock: ${p.stock}\nCategory: ${p.category}`);
+    }
+
+    async function viewCategory(id) {
+      const res = await fetch(`${API}/category/${id}`);
+      const c = await res.json();
+      if (c.error) return alert(c.error);
+      alert(`Category: ${c.name}`);
+    }
+
+    // Product Modal
+    function openEditModal(id) {
+      const p = window.products.find(x => x.id == id);
+      editId.value = p.id;
+      editName.value = p.name;
+      editPrice.value = p.price;
+      editStock.value = p.stock;
+      editDesc.value = p.description || "";
+      editModal.style.display = "flex";
+    }
+    function closeModal() { editModal.style.display = "none"; }
+
+    // Category Modal
+    function openCatEditModal(id) {
+      const c = window.categories.find(x => x.id == id);
+      editCatId.value = c.id;
+      editCatName.value = c.name;
+      editCatModal.style.display = "flex";
+    }
+    function closeCatModal() { editCatModal.style.display = "none"; }
+
+    editForm.onsubmit = async e => {
+      e.preventDefault();
+      const id = editId.value;
+      const updated = {
+        name: editName.value,
+        price: editPrice.value,
+        stock: editStock.value,
+        description: editDesc.value
+      };
+      await fetch(`${API}/edit_product/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(updated)
+      });
+      closeModal(); await loadProducts(); loadStats();
+    };
+
+    editCatForm.onsubmit = async e => {
+      e.preventDefault();
+      const id = editCatId.value;
+      const fd = new FormData();
+      fd.append("name", editCatName.value);
+      if (editCatImage.files[0]) fd.append("image", editCatImage.files[0]);
+      await fetch(`${API}/edit_category/${id}`, { method: "PUT", body: fd });
+      closeCatModal(); await loadCategories(); loadStats();
+    };
+
+    catForm.onsubmit = async e => {
+      e.preventDefault();
+      const fd = new FormData(catForm);
+      await fetch(`${API}/add_category`, { method: "POST", body: fd });
+      catMsg.textContent = "✅ Category added!";
+      await loadCategories(); loadStats();
+    };
+
+    productForm.onsubmit = async e => {
+      e.preventDefault();
+      const fd = new FormData(productForm);
+      await fetch(`${API}/add_product`, { method: "POST", body: fd });
+      prodMsg.textContent = "✅ Product added!";
+      await loadProducts(); loadStats();
+    };
+
+    function logout() {
+      localStorage.clear(); location.href = "../login.html";
+    }
+
+    (async () => {
+      await loadStats(); await loadCategories(); await loadProducts();
+    })();
+  </script>
+</body>
+</html>

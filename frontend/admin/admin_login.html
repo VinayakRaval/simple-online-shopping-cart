@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0b1220, #0f172a);
+      font-family: Poppins, sans-serif;
+      color: #e6eef8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: #071427;
+      padding: 35px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      width: 380px;
+      text-align: center;
+    }
+    h2 {
+      color: #00b4db;
+      margin-bottom: 15px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e6eef8;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+    button:hover {
+      background: #00e0a8;
+    }
+    .error {
+      color: #ff5c5c;
+      font-size: 0.9rem;
+      margin-top: 10px;
+    }
+    a {
+      color: #00b4db;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Admin Login</h2>
+    <input id="email" type="email" placeholder="Admin Email" />
+    <input id="password" type="password" placeholder="Password" />
+    <button id="loginBtn">Login</button>
+    <p id="msg" class="error"></p>
+    <p><a href="admin_forgot.html">Forgot Password?</a></p>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000/api/auth/login";
+
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("msg");
+
+      msg.textContent = "";
+
+      if (!email || !password) {
+        msg.textContent = "Please enter email and password.";
+        return;
+      }
+
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.role === "Admin") {
+          localStorage.setItem("admin_token", data.token);
+          localStorage.setItem("admin_id", data.user_id);
+          localStorage.setItem("admin_role", data.role);
+          msg.style.color = "#9ffca0";
+          msg.textContent = "✅ Login successful! Redirecting...";
+          setTimeout(() => (window.location.href = "admin_dashboard.html"), 1500);
+        } else if (res.ok && data.role !== "Admin") {
+          msg.textContent = "Access denied. Customers cannot access admin login.";
+        } else {
+          msg.textContent = data.error || "Invalid login details.";
+        }
+      } catch (err) {
+        console.error("Login error:", err);
+        msg.textContent = "Server error. Try again.";
+      }
+    });
+  </script>
+</body>
+</html>

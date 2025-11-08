@@ -171,3 +171,104 @@ async function removeFromCart(cartId, productId) {
     showToast("Server error removing item", true);
   }
 }
+// ✅ Frontend cart.js
+const API_CART = "http://127.0.0.1:5000/api/cart";
+const userId = localStorage.getItem("user_id");
+const role = localStorage.getItem("role");
+
+// ✅ 1. Check login status
+if (!userId || role !== "Customer") {
+  alert("Please log in as a user!");
+  window.location.href = "login.html";
+} else {
+  loadCart();
+}
+
+// ✅ 2. Load cart items
+async function loadCart() {
+  const cartContainer = document.getElementById("cartItems");
+  try {
+    const res = await fetch(`${API_CART}/${userId}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      cartContainer.innerHTML = `<p style='color:red;'>${data.error || "Failed to load cart."}</p>`;
+      return;
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      cartContainer.innerHTML = `<p>Your cart is empty.</p>`;
+      return;
+    }
+
+    renderCart(data);
+  } catch (err) {
+    console.error(err);
+    cartContainer.innerHTML = `<p style='color:red;'>Server error loading cart.</p>`;
+  }
+}
+
+// ✅ 3. Render cart items
+function renderCart(items) {
+  const container = document.getElementById("cartItems");
+  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  container.innerHTML = `
+    <table class="cart-table">
+      <thead>
+        <tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr>
+      </thead>
+      <tbody>
+        ${items.map(i => `
+          <tr>
+            <td>${i.name}</td>
+            <td>${i.quantity}</td>
+            <td>₹${i.price}</td>
+            <td>₹${i.price * i.quantity}</td>
+            <td><button onclick="removeFromCart(${i.product_id})">❌</button></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    <div class="cart-summary">
+      <h3>Total: ₹${total}</h3>
+      <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
+    </div>
+  `;
+}
+
+// ✅ 4. Remove item
+async function removeFromCart(productId) {
+  const res = await fetch(`${API_CART}/remove`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, product_id: productId })
+  });
+  const data = await res.json();
+  if (res.ok) {
+    alert("Item removed from cart.");
+    loadCart();
+  } else {
+    alert(data.error || "Failed to remove item.");
+  }
+}
+
+// ✅ 5. Place order
+async function placeOrder() {
+  try {
+    const res = await fetch("http://127.0.0.1:5000/api/orders/place", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("✅ Order placed successfully!");
+      window.location.href = "my-orders.html";
+    } else {
+      alert(data.error || "Failed to place order.");
+    }
+  } catch (err) {
+    alert("Server error placing order!");
+  }
+}

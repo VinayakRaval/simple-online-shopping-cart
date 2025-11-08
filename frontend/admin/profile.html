@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Admin Profile — ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #0b1220, #0f172a);
+      color: #e6eef8;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 230px;
+      background: #0f172a;
+      padding: 20px;
+      border-right: 2px solid #081a2e;
+    }
+    .sidebar h2 {
+      color: #00b4db;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .nav-link {
+      color: #9fb6c7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: block;
+      text-decoration: none;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
+
+    .main {
+      flex: 1;
+      padding: 40px;
+      background: linear-gradient(180deg, #0b1220, #0f172a);
+    }
+    h1 { color: #00b4db; margin-bottom: 20px; }
+
+    .form-box {
+      background: #0b1228;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 500px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+    }
+    label { display: block; margin-top: 10px; color: #9fb6c7; }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 5px;
+      background: #081a2e;
+      color: #e6eef8;
+    }
+    button {
+      background: #00b4db;
+      color: #02121a;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover { background: #00e0a8; }
+    .success { color: #00e0a8; margin-top: 10px; }
+    .error { color: #ff4b4b; margin-top: 10px; }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ShopSmart Admin</h2>
+    <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+    <a href="products.html" class="nav-link">🛍 Products</a>
+    <a href="categories.html" class="nav-link">📁 Categories</a>
+    <a href="users.html" class="nav-link">👤 Users</a>
+    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <a href="profile.html" class="nav-link active">⚙️ Profile</a>
+    <a href="admin_login.html" class="nav-link" onclick="logout()">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <h1>⚙️ Admin Profile & Settings</h1>
+
+    <div class="form-box">
+      <form id="profileForm">
+        <label>Username</label>
+        <input type="text" id="username" readonly />
+
+        <label>Email</label>
+        <input type="email" id="email" required />
+
+        <button type="submit">Update Email</button>
+      </form>
+
+      <hr style="margin:20px 0;border-color:#1a2335;" />
+
+      <form id="passwordForm">
+        <label>Current Password</label>
+        <input type="password" id="currentPassword" required />
+
+        <label>New Password</label>
+        <input type="password" id="newPassword" required />
+
+        <button type="submit">Change Password</button>
+      </form>
+
+      <p id="message"></p>
+    </div>
+  </div>
+
+  <script>
+    // 🔒 Protect page
+    if (!localStorage.getItem("admin_token")) {
+      alert("Admin login required!");
+      window.location.href = "admin_login.html";
+    }
+
+    const API = "http://127.0.0.1:5000/api/admin/profile";
+    const token = localStorage.getItem("admin_token");
+    const msg = document.getElementById("message");
+
+    async function loadProfile() {
+      try {
+        const res = await fetch(API, { headers: { Authorization: token } });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById("username").value = data.username;
+          document.getElementById("email").value = data.email;
+        } else msg.textContent = data.error || "Failed to load profile.";
+      } catch (err) {
+        msg.textContent = "Server error.";
+      }
+    }
+
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+      const email = document.getElementById("email").value.trim();
+      try {
+        const res = await fetch(API + "/update_email", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: token },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        msg.textContent = res.ok ? "✅ Email updated successfully!" : data.error;
+        msg.className = res.ok ? "success" : "error";
+      } catch {
+        msg.textContent = "Server error updating email.";
+        msg.className = "error";
+      }
+    });
+
+    document.getElementById("passwordForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "";
+      const currentPassword = document.getElementById("currentPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+
+      try {
+        const res = await fetch(API + "/change_password", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: token },
+          body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+        });
+        const data = await res.json();
+        msg.textContent = res.ok ? "✅ Password updated successfully!" : data.error;
+        msg.className = res.ok ? "success" : "error";
+      } catch {
+        msg.textContent = "Server error updating password.";
+        msg.className = "error";
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem("admin_token");
+      alert("Logged out!");
+      window.location.href = "admin_login.html";
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html>

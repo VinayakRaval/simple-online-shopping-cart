@@ -1,0 +1,219 @@
+<!-- frontend/admin/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard — ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body { font-family: "Poppins", sans-serif; background: #0b1228; color: #e6eef8; margin:0; }
+    .wrap { max-width:1200px; margin:28px auto; padding:20px; }
+    header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; }
+    h1 { color:#00b4db; margin:0; }
+    .grid { display:grid; grid-template-columns: repeat(4,1fr); gap:16px; margin-bottom:20px; }
+    .card { background:#071827; padding:16px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.4); }
+    .card h3 { margin:0 0 8px; color:#9fb6c7; font-size:0.9rem; }
+    .card p { margin:0; font-size:1.4rem; color:#e6eef8; font-weight:700; }
+
+    .section { margin-top:18px; }
+    table { width:100%; border-collapse:collapse; background:#071827; color:#e6eef8; border-radius:8px; overflow:hidden; }
+    th, td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.03); text-align:left; }
+    th { background:#0f2a3b; color:#fff; font-weight:700; }
+    .top-products { display:flex; flex-direction:column; gap:8px; }
+    .top-item { display:flex; align-items:center; gap:10px; }
+    .top-item img { width:48px; height:48px; object-fit:cover; border-radius:6px; background:#0f172a; }
+
+    .btn { padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+    .btn.logout { background:#ff3b30; color:#fff; }
+    .muted { color:#9fb6c7; font-size:0.95rem; }
+
+    @media(max-width:900px) {
+      .grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(max-width:520px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Admin Dashboard</h1>
+        <div class="muted">Overview — totals, top sellers, low-stock & recent orders</div>
+      </div>
+      <div>
+        <button class="btn logout" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <section class="grid" aria-live="polite">
+      <div class="card">
+        <h3>Total Users</h3>
+        <p id="totalUsers">—</p>
+      </div>
+      <div class="card">
+        <h3>Total Products</h3>
+        <p id="totalProducts">—</p>
+      </div>
+      <div class="card">
+        <h3>Total Orders</h3>
+        <p id="totalOrders">—</p>
+      </div>
+      <div class="card">
+        <h3>Total Sales</h3>
+        <p id="totalSales">—</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="flex:1; min-width:280px;">
+          <div class="card">
+            <h3>Top Selling Products</h3>
+            <div id="topProducts" class="top-products">
+              <p class="muted">Loading...</p>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px;">
+            <h3>Low-stock Alerts</h3>
+            <div id="lowStock">
+              <p class="muted">Loading...</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:2; min-width:360px;">
+          <div class="card">
+            <h3>Recent Orders</h3>
+            <table id="ordersTable">
+              <thead>
+                <tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr>
+              </thead>
+              <tbody id="ordersBody">
+                <tr><td colspan="5" class="muted">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = "/api/admin";
+    // Admin auth: pass X-ADMIN-ID header. We'll get admin id from localStorage.
+    const adminId = localStorage.getItem("user_id");
+
+    function showError(msg){
+      alert(msg);
+    }
+
+    if (!adminId) {
+      alert("Admin login required!");
+      window.location.href = "../login.html";
+    }
+
+    // Logout button
+    document.getElementById("logoutBtn").addEventListener("click", ()=> {
+      localStorage.removeItem("user_id");
+      // optionally remove token/role if present
+      localStorage.removeItem("role");
+      window.location.href = "../login.html";
+    });
+
+    async function apiGet(path, qs=""){
+      const res = await fetch(API_BASE + path + qs, {
+        headers: { "X-ADMIN-ID": adminId }
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({error:"Unknown"}));
+        throw err;
+      }
+      return res.json();
+    }
+
+    // load stats
+    async function loadStats(){
+      try {
+        const s = await apiGet("/stats");
+        document.getElementById("totalUsers").innerText = s.total_users;
+        document.getElementById("totalProducts").innerText = s.total_products;
+        document.getElementById("totalOrders").innerText = s.total_orders;
+        document.getElementById("totalSales").innerText = "₹" + (s.total_sales || 0).toFixed(2);
+      } catch (e) {
+        console.error("Stats error:", e);
+        showError("Failed to load admin stats.");
+      }
+    }
+
+    async function loadTopProducts(){
+      try {
+        const tp = await apiGet("/top-products?limit=5");
+        const container = document.getElementById("topProducts");
+        if (!tp.length) {
+          container.innerHTML = "<p class='muted'>No top sellers yet.</p>";
+          return;
+        }
+        container.innerHTML = tp.map(p => `
+          <div class="top-item">
+            <img src="/assets/images/${(p.category||'').toLowerCase()}/${p.image || 'placeholder.png'}" onerror="this.src='/assets/images/placeholder.png'">
+            <div>
+              <div style="font-weight:700">${p.name}</div>
+              <div class="muted">Sold: ${p.total_sold || 0}</div>
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        console.error("Top products error:", e);
+        document.getElementById("topProducts").innerHTML = "<p class='muted'>Failed to load top products.</p>";
+      }
+    }
+
+    async function loadLowStock(){
+      try {
+        const ls = await apiGet("/low-stock?threshold=5");
+        const el = document.getElementById("lowStock");
+        if (!ls.length) {
+          el.innerHTML = "<p class='muted'>No low-stock items.</p>";
+          return;
+        }
+        el.innerHTML = ls.map(p=>`<div style="margin-bottom:6px"><strong>${p.name}</strong> <span class="muted">(${p.category})</span> — stock: <strong>${p.stock}</strong></div>`).join("");
+      } catch (e) {
+        console.error("Low stock error:", e);
+        document.getElementById("lowStock").innerHTML = "<p class='muted'>Failed to load low stock.</p>";
+      }
+    }
+
+    async function loadRecentOrders(){
+      try {
+        const ro = await apiGet("/recent-orders?limit=12");
+        const tbody = document.getElementById("ordersBody");
+        if (!ro.length) {
+          tbody.innerHTML = `<tr><td colspan="5" class="muted">No orders yet.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = ro.map(o => `
+          <tr>
+            <td>#${o.order_id}</td>
+            <td>${o.customer_name || ("User " + (o.user_id||""))}</td>
+            <td>₹${(o.total||0).toFixed(2)}</td>
+            <td>${o.status || "Placed"}</td>
+            <td>${(o.created_at || "").slice(0,19).replace("T"," ")}</td>
+          </tr>
+        `).join("");
+      } catch (e) {
+        console.error("Recent orders error:", e);
+        document.getElementById("ordersBody").innerHTML = `<tr><td colspan="5" class="muted">Failed to load orders.</td></tr>`;
+      }
+    }
+
+    // init
+    (async function init(){
+      await Promise.allSettled([loadStats(), loadTopProducts(), loadLowStock(), loadRecentOrders()]);
+    })();
+  </script>
+</body>
+</html>

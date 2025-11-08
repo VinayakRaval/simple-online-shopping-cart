@@ -144,3 +144,54 @@ CREATE TABLE contact_messages (
 -- END OF SCRIPT
 -- =====================================================
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role ENUM('Admin','Customer') DEFAULT 'Customer';
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS phone VARCHAR(20),
+ADD COLUMN IF NOT EXISTS status ENUM('active','blocked') DEFAULT 'active',
+ADD COLUMN IF NOT EXISTS last_login DATETIME NULL;
+
+CREATE TABLE IF NOT EXISTS categories (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  image VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  total DECIMAL(10,2),
+  status ENUM('Pending','Approved','Shipped','Delivered','Cancelled') DEFAULT 'Pending',
+  order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT,
+  product_id INT,
+  quantity INT,
+  price DECIMAL(10,2),
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS admin (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add a default admin123
+
+ALTER TABLE admin
+  ADD COLUMN reset_otp VARCHAR(10) DEFAULT NULL,
+  ADD COLUMN reset_expiry DATETIME DEFAULT NULL;
+
+ALTER TABLE users
+ADD COLUMN role ENUM('Admin', 'Customer') NOT NULL DEFAULT 'Customer' AFTER address;
+
+INSERT INTO users (username, email, password, phone, address, role, status)
+VALUES
+('Admin', 'admin@gmail.com', 'admin123', '9632157561', 'ShopSmart HQ', 'Admin', 'active');

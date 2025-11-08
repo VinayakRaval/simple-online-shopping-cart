@@ -48,6 +48,12 @@
   <div id="toast-container"></div>
 
   <script>
+    
+  if (!localStorage.getItem("token") || localStorage.getItem("role") !== "user") {
+    alert("Please log in as a user!");
+    window.location.href = "login.html";
+  }
+
   const ORDERS_API = "http://127.0.0.1:5000/api/orders";
   const USERS_API = "http://127.0.0.1:5000/api/users";
   const CART_API = "http://127.0.0.1:5000/api/cart";

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Signup — ShopSmart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0b1220, #0f172a);
+      color: #e6eef8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #071427;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      width: 400px;
+    }
+    h2 {
+      text-align: center;
+      color: #00b4db;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      background: #0f172a;
+      color: #e6eef8;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #00b4db;
+      color: #02121a;
+      margin-top: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background: #00e0a8;
+    }
+    p {
+      text-align: center;
+      margin-top: 10px;
+    }
+    a {
+      color: #00b4db;
+      text-decoration: none;
+    }
+    .error {
+      color: #ff4b4b;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h2>Admin Signup</h2>
+    <input id="username" placeholder="Full Name">
+    <input id="email" type="email" placeholder="Admin Email">
+    <input id="password" type="password" placeholder="Password">
+    <input id="key" type="password" placeholder="Admin Registration Key">
+    <button id="signupBtn">Register Admin</button>
+    <p id="msg" class="error"></p>
+    <p>Already an Admin? <a href="admin_login.html">Login</a></p>
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000/api/auth/admin-signup";
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const key = document.getElementById("key").value.trim();
+      const msg = document.getElementById("msg");
+
+      msg.textContent = "";
+
+      if (!username || !email || !password || !key) {
+        msg.textContent = "Please fill all fields.";
+        return;
+      }
+
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password, key })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.style.color = "#a0f5a0";
+          msg.textContent = "✅ Admin registered successfully!";
+          setTimeout(() => (window.location.href = "admin_login.html"), 1500);
+        } else {
+          msg.textContent = data.error || "Registration failed.";
+        }
+      } catch (err) {
+        console.error("Admin signup error:", err);
+        msg.textContent = "Server error. Try again.";
+      }
+    });
+  </script>
+</body>
+</html>

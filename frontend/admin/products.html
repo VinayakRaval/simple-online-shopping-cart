@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Product Management | ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #0b1220;
+      color: #e6eef8;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: #0f172a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #081a2e;
+    }
+
+    .sidebar h2 {
+      color: #00b4db;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .nav-link {
+      color: #9fb6c7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      text-decoration: none;
+      display: block;
+    }
+    .nav-link:hover,
+    .nav-link.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 30px;
+      background: linear-gradient(180deg, #0b1220, #0f172a);
+    }
+
+    h1 {
+      color: #00b4db;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1a2335;
+      text-align: left;
+    }
+
+    th {
+      color: #00b4db;
+      font-weight: 600;
+    }
+
+    tr:hover { background: #081a2e; }
+
+    .actions button {
+      margin-right: 6px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .edit { background: #00b4db; color: #02121a; }
+    .delete { background: #ff4b4b; color: #fff; }
+
+    .add-product {
+      background: #00b4db;
+      color: #02121a;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #0b1228;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+    }
+
+    .modal-content input, .modal-content select, .modal-content textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: #081a2e;
+      color: #e6eef8;
+    }
+
+    .modal-content button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #00b4db;
+      border: none;
+      border-radius: 8px;
+      color: #02121a;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .close-btn {
+      background: #ff4b4b;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ShopSmart Admin</h2>
+    <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+    <a href="products.html" class="nav-link active">🛍 Products</a>
+    <a href="categories.html" class="nav-link">📁 Categories</a>
+    <a href="users.html" class="nav-link">👤 Users</a>
+    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <a href="../login.html" class="nav-link" onclick="logout()">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <h1>🛍 Product Management</h1>
+    <button class="add-product" onclick="openModal()">+ Add Product</button>
+
+    <table id="productTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div id="productModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Product</h2>
+      <input type="hidden" id="productId" />
+      <input id="name" placeholder="Product Name" />
+      <select id="category">
+        <option>Phones</option>
+        <option>Laptops</option>
+        <option>Audio</option>
+        <option>Smartwatches</option>
+        <option>Accessories</option>
+      </select>
+      <input id="price" placeholder="Price" type="number" />
+      <input id="stock" placeholder="Stock" type="number" />
+      <textarea id="description" placeholder="Description"></textarea>
+      <input id="image" placeholder="Image Filename (e.g., phone.jpg)" />
+      <button onclick="saveProduct()">Save</button>
+      <button class="close-btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    if (!localStorage.getItem("admin_token")) {
+  alert("Admin login required!");
+  window.location.href = "admin_login.html";
+}
+
+    const API = "http://127.0.0.1:5000/api/admin/products";
+    const modal = document.getElementById("productModal");
+
+    function openModal(edit = false, product = {}) {
+      modal.style.display = "flex";
+      document.getElementById("modalTitle").textContent = edit ? "Edit Product" : "Add Product";
+      document.getElementById("productId").value = product.id || "";
+      document.getElementById("name").value = product.name || "";
+      document.getElementById("category").value = product.category || "Phones";
+      document.getElementById("price").value = product.price || "";
+      document.getElementById("stock").value = product.stock || "";
+      document.getElementById("description").value = product.description || "";
+      document.getElementById("image").value = product.image || "";
+    }
+
+    function closeModal() { modal.style.display = "none"; }
+
+    async function loadProducts() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const tbody = document.querySelector("#productTable tbody");
+      tbody.innerHTML = data.map(p => `
+        <tr>
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td>₹${p.price}</td>
+          <td>${p.stock}</td>
+          <td class="actions">
+            <button class="edit" onclick='openModal(true, ${JSON.stringify(p)})'>Edit</button>
+            <button class="delete" onclick="deleteProduct(${p.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function saveProduct() {
+      const id = document.getElementById("productId").value;
+      const product = {
+        name: document.getElementById("name").value.trim(),
+        category: document.getElementById("category").value.trim(),
+        price: document.getElementById("price").value.trim(),
+        stock: document.getElementById("stock").value.trim(),
+        description: document.getElementById("description").value.trim(),
+        image: document.getElementById("image").value.trim()
+      };
+
+      const method = id ? "PUT" : "POST";
+      const url = id ? `${API}/${id}` : API;
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+      });
+
+      if (res.ok) {
+        alert(id ? "Product updated!" : "Product added!");
+        closeModal();
+        loadProducts();
+      } else alert("Failed to save product");
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm("Delete this product?")) return;
+      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      if (res.ok) { alert("Product deleted!"); loadProducts(); }
+      else alert("Failed to delete product");
+    }
+
+    function logout() {
+      localStorage.clear();
+      alert("Logged out!");
+      window.location.href = "../login.html";
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>

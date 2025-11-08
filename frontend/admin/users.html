@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — User Management | ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #0b1220;
+      color: #e6eef8;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: #0f172a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #081a2e;
+    }
+
+    .sidebar h2 {
+      color: #00b4db;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .nav-link {
+      color: #9fb6c7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 30px;
+      background: linear-gradient(180deg, #0b1220, #0f172a);
+    }
+
+    h1 {
+      color: #00b4db;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1a2335;
+      text-align: left;
+    }
+
+    th {
+      color: #00b4db;
+      font-weight: 600;
+    }
+
+    tr:hover { background: #081a2e; }
+
+    .actions button {
+      margin-right: 6px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .block { background: #ff4b4b; color: #fff; }
+    .unblock { background: #00e0a8; color: #02121a; }
+    .reset { background: #00b4db; color: #02121a; }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ShopSmart Admin</h2>
+    <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+    <a href="products.html" class="nav-link">🛍 Products</a>
+    <a href="categories.html" class="nav-link">📁 Categories</a>
+    <a href="users.html" class="nav-link active">👤 Users</a>
+    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <a href="../login.html" class="nav-link" onclick="logout()">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <h1>👤 User Management</h1>
+
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Orders</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    if (!localStorage.getItem("admin_token")) {
+  alert("Admin login required!");
+  window.location.href = "admin_login.html";
+}
+
+    const API = "http://127.0.0.1:5000/api/admin/users";
+
+    async function loadUsers() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const tbody = document.querySelector("#userTable tbody");
+      tbody.innerHTML = data.map(u => `
+        <tr>
+          <td>${u.id}</td>
+          <td>${u.username}</td>
+          <td>${u.email}</td>
+          <td>${u.phone || "-"}</td>
+          <td>${u.status === "active" ? "✅ Active" : "⛔ Blocked"}</td>
+          <td>${u.order_count || 0}</td>
+          <td>${u.last_login ? new Date(u.last_login).toLocaleString() : "-"}</td>
+          <td class="actions">
+            ${u.status === "active"
+              ? `<button class='block' onclick='blockUser(${u.id})'>Block</button>`
+              : `<button class='unblock' onclick='unblockUser(${u.id})'>Unblock</button>`}
+            <button class='reset' onclick='resetPassword(${u.id})'>Reset PW</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function blockUser(id) {
+      if (!confirm("Block this user?")) return;
+      const res = await fetch(`${API}/${id}/block`, { method: "PUT" });
+      if (res.ok) { alert("User blocked!"); loadUsers(); }
+      else alert("Failed to block user");
+    }
+
+    async function unblockUser(id) {
+      if (!confirm("Unblock this user?")) return;
+      const res = await fetch(`${API}/${id}/unblock`, { method: "PUT" });
+      if (res.ok) { alert("User unblocked!"); loadUsers(); }
+      else alert("Failed to unblock user");
+    }
+
+    async function resetPassword(id) {
+      const newPass = prompt("Enter new password for this user:");
+      if (!newPass) return;
+      const res = await fetch(`${API}/${id}/reset-password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ new_password: newPass })
+      });
+      if (res.ok) alert("Password reset successful!");
+      else alert("Failed to reset password");
+    }
+
+    function logout() {
+      localStorage.clear();
+      alert("Logged out!");
+      window.location.href = "../login.html";
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

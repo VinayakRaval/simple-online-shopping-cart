@@ -3,8 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Products — ShopSmart</title>
+  <title>ShopSmart — Products</title>
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background: #0b1220;
+      color: #e6eef8;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    h2.section-title {
+      text-align: center;
+      color: #00b4db;
+      margin-top: 30px;
+    }
+    .search-bar {
+      text-align: center;
+      margin: 20px;
+    }
+    .search-bar input {
+      width: 60%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #071427;
+      color: #e6eef8;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 20px 8%;
+    }
+    .product-card {
+      background: #071427;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+    .product-card:hover { transform: translateY(-6px); }
+    .product-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      background: #0f172a;
+    }
+    .p-title { color: #e6eef8; font-weight: 600; margin-top: 10px; }
+    .p-price { color: #00e0a8; font-weight: 700; margin-bottom: 10px; }
+    button {
+      background: #00b4db;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #02121a;
+      margin: 4px;
+    }
+    button:hover { background: #00e0a8; }
+  </style>
 </head>
 
 <body>
@@ -12,59 +73,83 @@
   <div id="header-root"></div>
   <script>
     fetch("components/header.html")
-      .then((r) => r.text())
-      .then((h) => (document.getElementById("header-root").innerHTML = h));
+      .then(r => r.text())
+      .then(h => document.getElementById("header-root").innerHTML = h);
   </script>
 
-  <!-- ✅ Product Section -->
-  <section class="product-page container">
-    <h2 id="pageTitle" class="section-title">All Products</h2>
+  <h2 class="section-title" id="pageTitle">All Products</h2>
 
-    <!-- 🔍 Filter & Sort -->
-    <div
-      style="display:flex;gap:12px;align-items:center;margin:12px 0;flex-wrap:wrap"
-    >
-      <input
-        id="filterSearch"
-        placeholder="Search all products..."
-        style="flex:1;padding:10px;border-radius:8px;border:none;background:#0b1228;color:#e6eef8;padding-left:12px"
-      />
-      <select
-        id="sortSelect"
-        style="padding:10px;border-radius:8px;border:none;background:#0b1228;color:#e6eef8"
-      >
-        <option value="">Sort By</option>
-        <option value="price_asc">Price: Low → High</option>
-        <option value="price_desc">Price: High → Low</option>
-        <option value="newest">Newest</option>
-      </select>
-      <button
-        id="searchBtn"
-        class="btn"
-        style="background:#00b4db;color:#02121a;font-weight:600"
-      >
-        Search
-      </button>
-    </div>
+  <div class="search-bar">
+    <input id="searchInput" placeholder="Search products..." />
+    <button id="searchBtn">Search</button>
+  </div>
 
-    <!-- 🛒 Product Grid -->
-    <div id="productGrid" class="product-grid"></div>
+  <div class="product-grid" id="productGrid"></div>
 
-    <!-- 🔄 Load More -->
-    <div style="text-align:center;margin:20px 0">
-      <button id="loadMoreBtn" class="btn add">Load More</button>
-    </div>
-  </section>
-
-  <!-- ✅ Footer -->
-  <div id="footer-root"></div>
   <script>
-    fetch("components/footer.html")
-      .then((r) => r.text())
-      .then((h) => (document.getElementById("footer-root").innerHTML = h));
-  </script>
+    const API = "http://127.0.0.1:5000/api/admin";
+    let allProducts = [];
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryFilter = urlParams.get("category");
 
-  <!-- ✅ JS -->
-  <script src="js/products.js"></script>
+    async function loadProducts() {
+      const res = await fetch(`${API}/products`);
+      const data = await res.json();
+      allProducts = data;
+
+      if (categoryFilter) {
+        document.getElementById("pageTitle").textContent = `${categoryFilter} Products`;
+        const filtered = data.filter(p => p.category?.toLowerCase() === categoryFilter.toLowerCase());
+        renderProducts(filtered);
+      } else renderProducts(data);
+    }
+
+    function renderProducts(list) {
+      const grid = document.getElementById("productGrid");
+      grid.innerHTML = list.length
+        ? list.map(p => `
+          <div class="product-card">
+            <img src="${API}/images/${p.image || 'noimg.png'}" onerror="this.src='assets/images/noimg.png'">
+            <h4 class="p-title">${p.name}</h4>
+            <p class="p-price">₹${p.price}</p>
+            <button onclick="viewProduct(${p.id})">View</button>
+            <button onclick="addToCart(${p.id})">Add to Cart</button>
+          </div>
+        `).join('')
+        : "<p style='text-align:center'>No products found.</p>";
+    }
+
+    document.getElementById("searchBtn").addEventListener("click", () => {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = allProducts.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.category || "").toLowerCase().includes(q)
+      );
+      renderProducts(filtered);
+    });
+
+    function viewProduct(id) {
+      location.href = `product-details.html?id=${id}`;
+    }
+
+    async function addToCart(id) {
+      const uid = localStorage.getItem("user_id");
+      if (!uid) return alert("Please log in first.");
+      await fetch("http://127.0.0.1:5000/api/cart/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ user_id: uid, product_id: id, quantity: 1 })
+      });
+      alert("✅ Added to cart!");
+    }
+
+    // 🔄 Auto-refresh every 10 seconds
+    async function autoRefresh() {
+      await loadProducts();
+      setTimeout(autoRefresh, 10000);
+    }
+
+    autoRefresh();
+  </script>
 </body>
 </html>

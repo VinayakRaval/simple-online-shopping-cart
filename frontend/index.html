@@ -26,7 +26,7 @@
       background: linear-gradient(135deg, #0b1220, #081a2e);
     }
     .hero-content { flex: 1; color: #e6eef8; }
-    .hero-content h1 { font-size: 2.3rem; margin-bottom: 10px; color: #00b4db; }
+    .hero-content h1 { font-size: 2.4rem; margin-bottom: 10px; color: #00b4db; }
     .hero-content p { color: #9fb6c7; font-size: 1.1rem; margin-bottom: 25px; }
     .hero-img { flex: 1; text-align: right; }
     .hero-img img { width: 100%; max-width: 450px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
@@ -124,7 +124,7 @@
 </head>
 
 <body>
-  <!-- ===== HEADER (with Profile, Logout, Cart) ===== -->
+  <!-- ===== HEADER ===== -->
   <div id="header-root"></div>
   <script>
     (async function loadHeaderAndInit() {
@@ -197,104 +197,85 @@
 
   <!-- ===== SHOP BY CATEGORY ===== -->
   <h2 class="section-title">Shop by Category</h2>
-  <div class="category-grid">
-  <div onclick="window.location.href='category.html?category=Phones'">
-    <img src="assets/images/categories/cat-phones.jpg"><p>Phones</p>
-  </div>
-  <div onclick="window.location.href='category.html?category=Laptops'">
-    <img src="assets/images/categories/cat-laptops.jpg"><p>Laptops</p>
-  </div>
-  <div onclick="window.location.href='category.html?category=Smartwatches'">
-    <img src="assets/images/categories/cat-smartwatches.jpg"><p>Smartwatches</p>
-  </div>
-  <div onclick="window.location.href='category.html?category=Audio'">
-    <img src="assets/images/categories/cat-audio.jpg"><p>Audio</p>
-  </div>
-  <div onclick="window.location.href='category.html?category=Accessories'">
-    <img src="assets/images/categories/cat-accessories.jpg"><p>Accessories</p>
-  </div>
-  <div onclick="window.location.href='category.html?category=Fashion'">
-    <img src="assets/images/categories/cat-fashion.jpg"><p>Fashion</p>
-  </div>
-</div>
+  <div id="categoryGrid" class="category-grid"><p>Loading categories...</p></div>
 
-
-  <!-- CATEGORY PRODUCTS -->
-  <h2 id="categoryTitle" class="section-title" style="display:none;"></h2>
-  <div id="categoryGrid" class="product-grid"></div>
-
-  <!-- FEATURED PRODUCTS -->
+  <!-- ===== FEATURED PRODUCTS ===== -->
   <h2 class="section-title">Featured Products</h2>
-  <div id="featuredGrid" class="product-grid"></div>
+  <div id="featuredGrid" class="product-grid"><p>Loading...</p></div>
   <button id="loadMoreBtn">Load More</button>
 
   <script>
-    const API = "http://127.0.0.1:5000/api/products";
+    const API = "http://127.0.0.1:5000/api/admin";
     let allProducts = [], visibleCount = 8;
+
+    async function loadCategories() {
+      const grid = document.getElementById("categoryGrid");
+      try {
+        const res = await fetch(`${API}/categories`);
+        const cats = await res.json();
+        grid.innerHTML = cats.length ? cats.map(c => `
+          <div onclick="window.location.href='category.html?category=${encodeURIComponent(c.name)}'">
+            <img src="${API}/images/${c.image || 'noimg.png'}" onerror="this.src='assets/images/noimg.png'">
+            <p>${c.name}</p>
+          </div>`).join('') : "<p style='text-align:center'>No categories found.</p>";
+      } catch { grid.innerHTML = "<p>Error loading categories.</p>"; }
+    }
 
     async function loadProducts() {
       const grid = document.getElementById("featuredGrid");
-      grid.innerHTML = "<p>Loading...</p>";
-      const res = await fetch(`${API}/featured`);
-      allProducts = await res.json();
-      renderProducts();
+      try {
+        const res = await fetch(`${API}/products`);
+        allProducts = await res.json();
+        renderProducts();
+      } catch { grid.innerHTML = "<p>Error loading products.</p>"; }
     }
 
     function renderProducts() {
       const grid = document.getElementById("featuredGrid");
       const visible = allProducts.slice(0, visibleCount);
-      grid.innerHTML = visible.map(p=>productCardHTML(p)).join('');
-      document.getElementById("loadMoreBtn").style.display = visibleCount>=allProducts.length?"none":"block";
+      grid.innerHTML = visible.map(p => `
+        <div class="product-card">
+          <img src="${API}/images/${p.image || 'noimg.png'}" onerror="this.src='assets/images/noimg.png'">
+          <h4 class="p-title">${p.name}</h4>
+          <div class="p-price">₹${p.price}</div>
+          <div class="p-actions">
+            <button onclick="addToCart(${p.id})">Add</button>
+            <button onclick="viewProduct(${p.id})">View</button>
+          </div>
+        </div>`).join('');
+      document.getElementById("loadMoreBtn").style.display = visibleCount >= allProducts.length ? "none" : "block";
     }
 
-    document.getElementById("loadMoreBtn").onclick=()=>{visibleCount+=4;renderProducts();};
+    document.getElementById("loadMoreBtn").onclick = () => { visibleCount += 4; renderProducts(); };
 
-    document.getElementById("homeSearchBtn").onclick=async()=>{
-      const q=document.getElementById("homeSearch").value.trim();
-      if(!q)return loadProducts();
-      const res=await fetch(`${API}/search?q=${encodeURIComponent(q)}`);
-      const data=await res.json();
-      allProducts=data;visibleCount=8;renderProducts();
+    async function addToCart(id) {
+      const uid = localStorage.getItem("user_id");
+      if (!uid) return alert("Login first!");
+      await fetch("http://127.0.0.1:5000/api/cart/add", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ user_id: uid, product_id: id, quantity: 1 })
+      });
+      showToast("✅ Added to cart");
+    }
+
+    function viewProduct(id) { location.href = `product-details.html?id=${id}`; }
+
+    document.getElementById("homeSearchBtn").onclick = () => {
+      const q = document.getElementById("homeSearch").value.trim().toLowerCase();
+      if (!q) return renderProducts();
+      const filtered = allProducts.filter(p => p.name.toLowerCase().includes(q));
+      document.getElementById("featuredGrid").innerHTML = filtered.map(p => `
+        <div class="product-card">
+          <img src="${API}/images/${p.image || 'noimg.png'}">
+          <h4 class="p-title">${p.name}</h4>
+          <div class="p-price">₹${p.price}</div>
+        </div>`).join('') || "<p>No results.</p>";
     };
 
-    async function loadCategory(cat){
-      const grid=document.getElementById("categoryGrid"),title=document.getElementById("categoryTitle");
-      grid.innerHTML="<p>Loading...</p>";title.style.display="block";title.textContent=cat+" Products";
-      const res=await fetch(`${API}/search?q=${encodeURIComponent(cat)}`);
-      const data=await res.json();
-      grid.innerHTML=(data||[]).map(p=>productCardHTML(p)).join('')||"<p>No products.</p>";
-    }
-
-    function productCardHTML(p){
-      return `<div class="product-card">
-        <img src="assets/images/${(p.category||'').toLowerCase()}/${p.image||'placeholder.png'}" onerror="this.src='assets/images/placeholder.png'" alt="${p.name}">
-        <h4 class="p-title">${p.name}</h4>
-        <div class="p-price">₹${p.price}</div>
-        <div class="p-actions">
-          <button onclick="addToCart(${p.id})">Add</button>
-          <button onclick="removeFromCart(${p.id})" style="background:#ff4b4b;color:white;">Remove</button>
-          <button onclick="viewProduct(${p.id})">View</button>
-        </div></div>`;
-    }
-
-    async function addToCart(pid){
-      const uid=localStorage.getItem("user_id");
-      if(!uid){alert("Login first");location.href="login.html";return;}
-      const res=await fetch("http://127.0.0.1:5000/api/cart/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:uid,product_id:pid,quantity:1})});
-      const d=await res.json();
-      if(res.ok){showToast("✅ Added to cart");window.updateCartBadge&&updateCartBadge();}else showToast(d.error||"Failed",true);
-    }
-
-    async function removeFromCart(pid){
-      const uid=localStorage.getItem("user_id");
-      if(!uid){alert("Login first");location.href="login.html";return;}
-      const res=await fetch("http://127.0.0.1:5000/api/cart/remove",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:uid,product_id:pid})});
-      const d=await res.json();
-      if(res.ok){showToast("❌ Removed from cart");window.updateCartBadge&&updateCartBadge();}else showToast(d.error||"Failed",true);
-    }
-
-    function viewProduct(id){location.href=`product-details.html?id=${id}`;}
-    loadProducts();
+    async function refreshAll() { await Promise.all([loadCategories(), loadProducts()]); }
+    refreshAll();
+    setInterval(refreshAll, 10000); // 🔄 Live update every 10s
   </script>
 </body>
 </html>

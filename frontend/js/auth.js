@@ -1,19 +1,24 @@
-// ====== BASE URL ======
-const USER_API = "http://127.0.0.1:5000/api/users";
+// ==========================================
+// 🔹 AUTH.JS — Handles Login, Signup & Logout
+// ==========================================
 
-// ====== Toast Notification ======
+const API_BASE = "http://127.0.0.1:5000/api/auth";
+
+// ======================
+// 🔹 Toast Utility
+// ======================
 function showToast(message, isError = false) {
   const container =
     document.getElementById("toast-container") ||
     (() => {
-      const c = document.createElement("div");
-      c.id = "toast-container";
-      c.style.position = "fixed";
-      c.style.bottom = "20px";
-      c.style.right = "20px";
-      c.style.zIndex = "9999";
-      document.body.appendChild(c);
-      return c;
+      const div = document.createElement("div");
+      div.id = "toast-container";
+      div.style.position = "fixed";
+      div.style.bottom = "20px";
+      div.style.right = "20px";
+      div.style.zIndex = "9999";
+      document.body.appendChild(div);
+      return div;
     })();
 
   const toast = document.createElement("div");
@@ -31,111 +36,134 @@ function showToast(message, isError = false) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-// ====== LOGIN ======
+// ======================
+// 🔹 LOGIN
+// ======================
 const loginBtn = document.getElementById("loginBtn");
 if (loginBtn) {
   loginBtn.addEventListener("click", async () => {
-    const loginInput = document.getElementById("loginInput").value.trim();
-    const password = document.getElementById("loginPassword").value.trim();
+    const email = document.getElementById("email")?.value.trim();
+    const password = document.getElementById("password")?.value.trim();
+    const msg = document.getElementById("msg");
 
-    if (!loginInput || !password) {
-      showToast("Enter Email/Phone and Password", true);
+    if (!email || !password) {
+      showToast("Please enter both email and password.", true);
       return;
     }
 
     try {
-      const res = await fetch(`${USER_API}/login`, {
+      const res = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: loginInput, password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
 
       if (res.ok) {
+        // ✅ Save essential user data in localStorage
+        localStorage.setItem("token", data.token);
         localStorage.setItem("user_id", data.user_id);
-        showToast(`Welcome ${data.username || "User"}!`);
-        setTimeout(() => (window.location.href = "index.html"), 1000);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("username", data.username);
+
+        showToast(`Welcome back, ${data.username || "User"}!`);
+
+        // ✅ Redirect based on role
+        setTimeout(() => {
+          if (data.role === "Admin") {
+            window.location.href = "admin/dashboard.html";
+          } else {
+            window.location.href = "index.html";
+          }
+        }, 800);
       } else {
-        showToast(data.error || "Invalid credentials", true);
+        msg.textContent = data.error || "Invalid credentials.";
+        msg.style.color = "#ff4b4b";
       }
     } catch (err) {
-      console.error(err);
-      showToast("Login failed. Check server connection.", true);
+      console.error("Login error:", err);
+      showToast("Server error during login.", true);
     }
   });
 }
 
-// ====== SIGNUP ======
-const sendOtpBtn = document.getElementById("sendOtpBtn");
-if (sendOtpBtn)
-  sendOtpBtn.addEventListener("click", () => {
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    alert(`Mock OTP: ${otp}`);
-    localStorage.setItem("mockOtp", otp);
-  });
-
+// ======================
+// 🔹 SIGNUP (Customer)
+// ======================
 const signupBtn = document.getElementById("signupBtn");
 if (signupBtn) {
   signupBtn.addEventListener("click", async () => {
-    const fullname = document.getElementById("fullname").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const otp = document.getElementById("otp").value.trim();
-    const password = document.getElementById("password").value.trim();
+    const username = document.getElementById("username")?.value.trim();
+    const email = document.getElementById("email")?.value.trim();
+    const phone = document.getElementById("phone")?.value.trim();
+    const password = document.getElementById("password")?.value.trim();
+    const msg = document.getElementById("msg");
 
-    if (!fullname || !email || !phone || !otp || !password) {
-      showToast("Please fill all fields", true);
-      return;
-    }
-
-    if (otp !== localStorage.getItem("mockOtp")) {
-      showToast("Invalid OTP. Try again.", true);
+    if (!username || !email || !phone || !password) {
+      showToast("Please fill all fields.", true);
       return;
     }
 
     try {
-      const res = await fetch(`${USER_API}/signup`, {
+      const res = await fetch(`${API_BASE}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullname, email, phone, password }),
+        body: JSON.stringify({ username, email, phone, password }),
       });
       const data = await res.json();
 
       if (res.ok) {
-        showToast("Signup successful! Redirecting...");
-        localStorage.removeItem("mockOtp");
-        setTimeout(() => (window.location.href = "login.html"), 1000);
+        showToast("Account created successfully! Redirecting...");
+        setTimeout(() => (window.location.href = "login.html"), 1200);
       } else {
-        showToast(data.error || "Signup failed", true);
+        msg.textContent = data.error || "Signup failed.";
+        msg.style.color = "#ff4b4b";
       }
-    } catch {
-      showToast("Server error during signup", true);
+    } catch (err) {
+      console.error("Signup error:", err);
+      showToast("Server error during signup.", true);
     }
   });
 }
 
-// ====== LOGOUT ======
+// ======================
+// 🔹 LOGOUT
+// ======================
 function logout() {
+  localStorage.removeItem("token");
   localStorage.removeItem("user_id");
-  showToast("Logged out successfully!");
+  localStorage.removeItem("role");
+  localStorage.removeItem("username");
+  showToast("You’ve been logged out!");
   setTimeout(() => (window.location.href = "login.html"), 1000);
 }
 
-// ====== PAGE ACCESS CONTROL ======
+// ======================
+// 🔹 Session Validation
+// ======================
 document.addEventListener("DOMContentLoaded", () => {
-  const userId = localStorage.getItem("user_id");
   const currentPage = window.location.pathname.split("/").pop();
+  const userId = localStorage.getItem("user_id");
+  const role = localStorage.getItem("role");
 
-  // 🔒 Force login first — all pages except auth ones
-  const protectedPages = ["index.html", "products.html", "cart.html", "orders.html", "checkout.html"];
+  const protectedPages = ["cart.html", "checkout.html", "orders.html"];
+  const adminPages = ["dashboard.html", "admin_products.html"];
 
+  // 🔒 If user not logged in and accessing protected page
   if (!userId && protectedPages.includes(currentPage)) {
+    showToast("Please log in to continue.", true);
     window.location.href = "login.html";
-    return;
   }
 
-  // 🚫 Prevent logged-in users from re-accessing auth pages
-  if (userId && ["login.html", "signup.html", "forgot_password.html"].includes(currentPage)) {
+  // 🔒 Prevent Admins from accessing user pages
+  if (userId && role === "Admin" && protectedPages.includes(currentPage)) {
+    showToast("Admins cannot access user pages.", true);
+    window.location.href = "admin/dashboard.html";
+  }
+
+  // 🔒 Prevent Customers from accessing Admin pages
+  if (userId && role === "Customer" && adminPages.includes(currentPage)) {
+    showToast("Access denied — Admin only.", true);
     window.location.href = "index.html";
   }
 });

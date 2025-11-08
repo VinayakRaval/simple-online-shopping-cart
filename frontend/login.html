@@ -3,62 +3,272 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — ShopSmart</title>
+  <title>ShopSmart — Authentication</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
     body {
-      background: linear-gradient(135deg, #0b1220, #0f172a);
       font-family: "Poppins", sans-serif;
-      color: #e6eef8;
+      background: linear-gradient(135deg, #0b1220, #0f172a);
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      height: 100vh;
+      margin: 0;
+      color: #e6eef8;
     }
-    .login-box {
-      background: #0b1228;
+    .auth-card {
+      background: #071427;
+      width: 420px;
+      border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
-      width: 360px;
       text-align: center;
+      position: relative;
     }
-    h2 { color: #00b4db; margin-bottom: 20px; }
+    .role-switch {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      background: #0f172a;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .role-switch button {
+      flex: 1;
+      background: none;
+      border: none;
+      color: #9fb6c7;
+      padding: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .role-switch button.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+    .tabs button {
+      background: none;
+      border: none;
+      color: #9fb6c7;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .tabs button.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
     input {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
+      margin: 10px 0;
       border: none;
       border-radius: 8px;
-      background: #071427;
+      background: #0f172a;
       color: #e6eef8;
-      outline: none;
     }
-    button {
-      margin-top: 20px;
+    button.action {
       width: 100%;
       padding: 12px;
       border: none;
       border-radius: 8px;
-      font-weight: 600;
+      margin-top: 10px;
       background: #00b4db;
       color: #02121a;
+      font-weight: 600;
       cursor: pointer;
+      transition: 0.3s;
     }
-    button:hover { background: #00e0a8; }
-    a { color: #00b4db; text-decoration: none; font-size: 0.9rem; }
+    button.action:hover { background: #00e0a8; }
+    .error, .success {
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+    .error { color: #ff4b4b; }
+    .success { color: #00e0a8; }
+    .hidden { display: none; }
   </style>
 </head>
+
 <body>
-  <div class="login-box">
-    <h2>Login</h2>
-    <input type="text" id="loginInput" placeholder="Email or Phone" />
-    <input type="password" id="loginPassword" placeholder="Password" />
-    <button id="loginBtn">Login</button>
-    <p>Forgot your password? <a href="forgot_password.html">Reset Here</a></p>
-    <p>Don’t have an account? <a href="signup.html">Sign up</a></p>
+  <div class="auth-card">
+    <!-- 🔁 Role Switcher -->
+    <div class="role-switch">
+      <button id="customerBtn" class="active">Customer</button>
+      <button id="adminBtn">Admin</button>
+    </div>
+
+    <!-- 🔖 Tabs -->
+    <div class="tabs">
+      <button id="tabLogin" class="active">Login</button>
+      <button id="tabSignup">Signup</button>
+      <button id="tabForgot">Forgot Password</button>
+    </div>
+
+    <!-- 🟩 LOGIN -->
+    <div id="loginForm">
+      <input id="loginEmail" type="email" placeholder="Email" />
+      <input id="loginPassword" type="password" placeholder="Password" />
+      <button class="action" id="loginBtn">Login</button>
+      <p id="loginMsg" class="error"></p>
+    </div>
+
+    <!-- 🟦 SIGNUP -->
+    <div id="signupForm" class="hidden">
+      <input id="signupUsername" placeholder="Full Name / Username" />
+      <input id="signupEmail" type="email" placeholder="Email Address" />
+      <input id="signupPassword" type="password" placeholder="Password" />
+      <input id="signupPhone" placeholder="Phone (optional)" />
+      <input id="signupAddress" placeholder="Address (optional)" />
+      <input id="signupKey" placeholder="Admin Key (Admins only)" />
+      <button class="action" id="signupBtn">Sign Up</button>
+      <p id="signupMsg" class="error"></p>
+    </div>
+
+    <!-- 🟨 FORGOT -->
+    <div id="forgotForm" class="hidden">
+      <input id="forgotEmail" type="email" placeholder="Email" />
+      <input id="forgotOtp" placeholder="Enter OTP (use 123456)" />
+      <input id="forgotPassword" type="password" placeholder="New Password" />
+      <button class="action" id="resetBtn">Reset Password</button>
+      <p id="forgotMsg" class="error"></p>
+    </div>
   </div>
 
-  <script src="js/auth.js"></script>
+  <script>
+    const BASE_API = "http://127.0.0.1:5000/api/auth";
+    let currentRole = "Customer";
+
+    // 🔁 Role Switcher
+    document.getElementById("customerBtn").addEventListener("click", () => switchRole("Customer"));
+    document.getElementById("adminBtn").addEventListener("click", () => switchRole("Admin"));
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById("customerBtn").classList.toggle("active", role === "Customer");
+      document.getElementById("adminBtn").classList.toggle("active", role === "Admin");
+    }
+
+    // 🔖 Tab switching
+    const tabs = ["login", "signup", "forgot"];
+    tabs.forEach(tab => {
+      document.getElementById(`tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`)
+        .addEventListener("click", () => showTab(tab));
+    });
+    function showTab(active) {
+      tabs.forEach(t => {
+        document.getElementById(`${t}Form`).classList.toggle("hidden", t !== active);
+        document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.toggle("active", t === active);
+      });
+    }
+
+    // 🟩 LOGIN
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      const msg = document.getElementById("loginMsg");
+      msg.textContent = "";
+
+      if (!email || !password) {
+        msg.textContent = "Email and password are required";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BASE_API}/login`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ email, password, role: currentRole })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          msg.className = "success";
+          msg.textContent = "✅ Login successful!";
+          localStorage.setItem("user_id", data.user_id);
+          localStorage.setItem("username", data.username);
+          localStorage.setItem("role", data.role);
+          setTimeout(() => {
+            window.location.href = currentRole === "Admin" ? "admin/admin_dashboard.html" : "index.html";
+          }, 1000);
+        } else msg.textContent = data.error || "Login failed.";
+      } catch {
+        msg.textContent = "Server error. Try again.";
+      }
+    });
+
+    // 🟦 SIGNUP
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const username = document.getElementById("signupUsername").value.trim();
+      const email = document.getElementById("signupEmail").value.trim();
+      const password = document.getElementById("signupPassword").value.trim();
+      const phone = document.getElementById("signupPhone").value.trim();
+      const address = document.getElementById("signupAddress").value.trim();
+      const key = document.getElementById("signupKey").value.trim();
+      const msg = document.getElementById("signupMsg");
+      msg.textContent = "";
+
+      if (!username || !email || !password) {
+        msg.textContent = "Please fill all required fields.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BASE_API}/signup`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ username, email, password, phone, address, role: currentRole, key })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.className = "success";
+          msg.textContent = "✅ Signup successful! You can now log in.";
+          setTimeout(() => showTab("login"), 1500);
+        } else msg.textContent = data.error || "Signup failed.";
+      } catch {
+        msg.textContent = "Server error. Try again.";
+      }
+    });
+
+    // 🟨 RESET PASSWORD
+    document.getElementById("resetBtn").addEventListener("click", async () => {
+      const email = document.getElementById("forgotEmail").value.trim();
+      const otp = document.getElementById("forgotOtp").value.trim();
+      const new_password = document.getElementById("forgotPassword").value.trim();
+      const msg = document.getElementById("forgotMsg");
+
+      if (!email || !otp || !new_password) {
+        msg.textContent = "Please fill all fields.";
+        return;
+      }
+      if (otp !== "123456") {
+        msg.textContent = "Invalid OTP. Use 123456 for testing.";
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BASE_API}/reset`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ email, otp, new_password, role: currentRole })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.className = "success";
+          msg.textContent = "✅ Password reset successful!";
+          setTimeout(() => showTab("login"), 1500);
+        } else msg.textContent = data.error || "Reset failed.";
+      } catch {
+        msg.textContent = "Server error. Try again.";
+      }
+    });
+  </script>
 </body>
 </html>

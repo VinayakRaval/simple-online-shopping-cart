@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Category Management | ShopSmart</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #0b1220;
+      color: #e6eef8;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: #0f172a;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      border-right: 2px solid #081a2e;
+    }
+
+    .sidebar h2 {
+      color: #00b4db;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .nav-link {
+      color: #9fb6c7;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background: #00b4db;
+      color: #02121a;
+      font-weight: 600;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 30px;
+      background: linear-gradient(180deg, #0b1220, #0f172a);
+    }
+
+    h1 {
+      color: #00b4db;
+    }
+
+    /* Buttons & Form */
+    .add-category {
+      background: #00b4db;
+      color: #02121a;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1a2335;
+      text-align: left;
+    }
+
+    th {
+      color: #00b4db;
+      font-weight: 600;
+    }
+
+    tr:hover { background: #081a2e; }
+
+    .actions button {
+      margin-right: 6px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .edit { background: #00b4db; color: #02121a; }
+    .delete { background: #ff4b4b; color: #fff; }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #0b1228;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: #081a2e;
+      color: #e6eef8;
+    }
+
+    .modal-content button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #00b4db;
+      border: none;
+      border-radius: 8px;
+      color: #02121a;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .close-btn {
+      background: #ff4b4b;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="sidebar">
+    <h2>ShopSmart Admin</h2>
+    <a href="dashboard.html" class="nav-link">📊 Dashboard</a>
+    <a href="products.html" class="nav-link">🛍 Products</a>
+    <a href="categories.html" class="nav-link active">📁 Categories</a>
+    <a href="users.html" class="nav-link">👤 Users</a>
+    <a href="orders.html" class="nav-link">📦 Orders</a>
+    <a href="../login.html" class="nav-link" onclick="logout()">🚪 Logout</a>
+  </div>
+
+  <div class="main">
+    <h1>📁 Category Management</h1>
+    <button class="add-category" onclick="openModal()">+ Add Category</button>
+
+    <table id="categoryTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Banner</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Modal -->
+  <div id="categoryModal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Category</h2>
+      <input type="hidden" id="catId" />
+      <input id="catName" placeholder="Category Name" />
+      <input id="catImage" placeholder="Banner Filename (e.g., cat-fashion.jpg)" />
+      <button onclick="saveCategory()">Save</button>
+      <button class="close-btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    if (!localStorage.getItem("admin_token")) {
+  alert("Admin login required!");
+  window.location.href = "admin_login.html";
+}
+
+    const API = "http://127.0.0.1:5000/api/admin/categories";
+    const modal = document.getElementById("categoryModal");
+
+    function openModal(edit=false, cat={}) {
+      modal.style.display = "flex";
+      document.getElementById("modalTitle").textContent = edit ? "Edit Category" : "Add Category";
+      document.getElementById("catId").value = cat.id || "";
+      document.getElementById("catName").value = cat.name || "";
+      document.getElementById("catImage").value = cat.image || "";
+    }
+
+    function closeModal() { modal.style.display = "none"; }
+
+    async function loadCategories() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const tbody = document.querySelector("#categoryTable tbody");
+      tbody.innerHTML = data.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td>${c.name}</td>
+          <td><img src="../assets/images/categories/${c.image}" width="80" height="50" style="border-radius:6px"></td>
+          <td class="actions">
+            <button class="edit" onclick='openModal(true, ${JSON.stringify(c)})'>Edit</button>
+            <button class="delete" onclick="deleteCategory(${c.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function saveCategory() {
+      const id = document.getElementById("catId").value;
+      const category = {
+        name: document.getElementById("catName").value.trim(),
+        image: document.getElementById("catImage").value.trim()
+      };
+
+      const method = id ? "PUT" : "POST";
+      const url = id ? `${API}/${id}` : API;
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(category)
+      });
+
+      if (res.ok) {
+        alert(id ? "Category updated!" : "Category added!");
+        closeModal();
+        loadCategories();
+      } else alert("Failed to save category");
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm("Delete this category?")) return;
+      const res = await fetch(`${API}/${id}`, { method: "DELETE" });
+      if (res.ok) { alert("Category deleted!"); loadCategories(); }
+      else alert("Failed to delete category");
+    }
+
+    function logout() {
+      localStorage.clear();
+      alert("Logged out!");
+      window.location.href = "../login.html";
+    }
+
+    loadCategories();
+  </script>
+</body>
+</html>

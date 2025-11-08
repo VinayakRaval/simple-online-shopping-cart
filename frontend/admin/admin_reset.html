@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Admin - Reset Password</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body {
+      font-family: Poppins, sans-serif;
+      background: #0b1228;
+      color: #e6eef8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #071427;
+      padding: 30px;
+      border-radius: 12px;
+      width: 360px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+    h2 {
+      color: #00b4db;
+      margin-bottom: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 10px;
+      background: #0f172a;
+      color: #e6eef8;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #00b4db;
+      color: #02121a;
+      margin-top: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #00e0a8; }
+    .small {
+      font-size: 0.9rem;
+      color: #9fb6c7;
+      margin-top: 8px;
+    }
+    .success {
+      background: #00e0a8;
+      color: #02121a;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      display: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Reset Admin Password</h2>
+    <input id="email" type="email" placeholder="Email" readonly>
+    <input id="otp" type="text" placeholder="Enter OTP">
+    <input id="password" type="password" placeholder="New Password">
+    <button id="resetBtn">Reset Password</button>
+    <p id="msg" class="small" style="display:none"></p>
+    <div id="success" class="success">✅ Password reset successful!</div>
+  </div>
+
+  <script>
+    const API = "/api/admin/reset";
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get("email") || "";
+    document.getElementById("email").value = email;
+    document.getElementById("otp").value = "123456"; // mock otp auto-filled
+
+    function showMsg(text, error=false) {
+      const el = document.getElementById("msg");
+      el.style.display = "block";
+      el.style.color = error ? "#ffb3b3" : "#bfe7d0";
+      el.innerText = text;
+      setTimeout(()=> el.style.display = "none", 4000);
+    }
+
+    document.getElementById("resetBtn").addEventListener("click", async ()=>{
+      const otp = document.getElementById("otp").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const email = document.getElementById("email").value.trim();
+
+      if(!otp || !password){
+        showMsg("Please enter all fields", true);
+        return;
+      }
+
+      try {
+        const res = await fetch(API, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ email, otp, new_password: password })
+        });
+        const data = await res.json();
+
+        if(res.ok){
+          document.getElementById("success").style.display = "block";
+          showMsg("Redirecting to login...");
+          setTimeout(()=> window.location.href = "../login.html", 2000);
+        } else {
+          showMsg(data.error || "Reset failed", true);
+        }
+      } catch (err){
+        showMsg("Server error. Try again.", true);
+      }
+    });
+  </script>
+</body>
+</html>

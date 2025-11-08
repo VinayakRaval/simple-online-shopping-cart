@@ -34,6 +34,11 @@
   </div>
 
   <script>
+  if (!localStorage.getItem("token") || localStorage.getItem("role") !== "user") {
+    alert("Please log in as a user!");
+    window.location.href = "login.html";
+  }
+
     const API = "http://127.0.0.1:5000/api/cart";
     const userId = localStorage.getItem("user_id");
     const cartItemsDiv = document.getElementById("cartItems");
